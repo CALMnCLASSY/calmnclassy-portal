@@ -1508,7 +1508,7 @@ async function createClientAccount(){
 // SYNC AUTH USERS
 // ══════════════════════════════════════════════════════════
 async function syncAuthUsers() {
-  if (!currentUser?.user_metadata?.is_admin) {
+  if (!isAdmin) {
     alert('Only admins can sync users');
     return;
   }
