@@ -1517,47 +1517,22 @@ async function syncAuthUsers() {
     syncBtn.disabled = true;
     syncBtn.textContent = '⏳Syncing...';
     
-    // Get all auth users
-    const { data: { users }, error: authError } = await db.auth.admin.listUsers();
-    if (authError) throw new Error('Failed to fetch auth users: ' + authError.message);
+    // Call the RPC function to sync users server-side
+    const { data, error } = await db.rpc('sync_auth_users_to_profiles');
+    if (error) throw new Error('Sync failed: ' + error.message);
     
-    // Get existing profiles
-    const { data: existingProfiles, error: profileError } = await db
-      .from('user_profiles')
-      .select('id');
-    if (profileError) throw new Error('Failed to fetch existing profiles: ' + profileError.message);
-    
-    const existingIds = new Set(existingProfiles.map(p => p.id));
-    const missingUsers = users.filter(u => !existingIds.has(u.id));
-    
-    if (missingUsers.length === 0) {
-      alert('All auth users already have profiles!');
-      syncBtn.disabled = false;
-      syncBtn.textContent = '↻ Sync Users from Auth';
-      return;
-    }
-    
-    // Insert new profiles for missing users
-    const profilesToInsert = missingUsers.map(u => ({
-      id: u.id,
-      email: u.email,
-      full_name: u.user_metadata?.full_name || u.email.split('@')[0],
-      phone: u.user_metadata?.phone || null,
-      company: u.user_metadata?.company || null,
-      role: u.user_metadata?.role || 'client'
-    }));
-    
-    const { error: insertError } = await db
-      .from('user_profiles')
-      .insert(profilesToInsert);
-    if (insertError) throw new Error('Failed to insert profiles: ' + insertError.message);
-    
-    // Refresh the clients list
+    // Refresh the clients list from database
     const {data:freshClients}=await db.from('user_profiles').select('*').eq('role','client').order('created_at',{ascending:false});
     allClients=freshClients||[];
     loadClientsTab();
     
-    alert('✓ Synced ' + missingUsers.length + ' user(s) from auth!');
+    const syncedCount = data[0]?.synced_count || 0;
+    if (syncedCount === 0) {
+      alert('✓ All users already synced!');
+    } else {
+      alert('✓ Synced ' + syncedCount + ' user(s) from auth!');
+    }
+    
     syncBtn.disabled = false;
     syncBtn.textContent = '↻ Sync Users from Auth';
   } catch (error) {
@@ -1565,7 +1540,7 @@ async function syncAuthUsers() {
     alert('Sync failed: ' + error.message);
     const syncBtn = document.getElementById('sync-users-btn');
     syncBtn.disabled = false;
-    syncBtn.textContent = '↻ Sync Users';
+    syncBtn.textContent = '↻ Retry Sync';
   }
 }
 
