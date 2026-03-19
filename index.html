@@ -692,7 +692,10 @@ tr:hover td{background:#F8FAFC}
 
           <!-- TAB: MANAGE CLIENTS -->
           <div id="admin-tab-users" class="admin-tab-content">
-            <div class="admin-section-lbl" style="margin-bottom:14px">Registered Client Accounts</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div class="admin-section-lbl" style="margin:0">Registered Client Accounts</div>
+              <button class="btn btn-sm" id="sync-users-btn" onclick="syncAuthUsers()" style="font-size:11px"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 003.51 15"/></svg>Sync Users from Auth</button>
+            </div>
             <div id="users-list"><div class="loading-state"><div class="loading-spinner"></div>Loading clients...</div></div>
             <div class="divider"></div>
             <div class="admin-section-lbl">Add New Client Account</div>
@@ -1458,25 +1461,112 @@ async function createClientAccount(){
   const company=document.getElementById('new-user-company').value.trim();
   if(!name||!email||!password){toast('Please fill in name, email, and password.','error');return;}
   if(password.length<8){toast('Password must be at least 8 characters.','error');return;}
+  if(!email.includes('@')){toast('Please enter a valid email address.','error');return;}
   const btn=document.getElementById('create-user-btn');
   btn.disabled=true;btn.textContent='Creating account...';
   try{
-    // Create auth account using admin API via Supabase edge function or service role
-    // For client-side, we use signUp — note: this requires email confirmation disabled in Supabase Auth settings
+    // Create auth account — email confirmation is already disabled
     const{data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,role:'client',company}}});
-    if(error)throw error;
-    const userId=data.user?.id;
-    if(userId){
-      // Upsert profile
-      await db.from('user_profiles').upsert({id:userId,email,full_name:name,role:'client',company:company||null});
-      allClients.unshift({id:userId,email,full_name:name,role:'client',company:company||null});
-      loadClientsTab();
-      toast(`Client account created! Send ${email} their credentials.`,'success',5000);
-      document.getElementById('new-user-name').value='';document.getElementById('new-user-email').value='';document.getElementById('new-user-password').value='';document.getElementById('new-user-company').value='';
+    if(error){
+      if(error.message.includes('already registered')){
+        throw new Error('This email is already registered. Use a different email.');
+      }
+      throw error;
     }
-  }catch(e){toast('Error creating account: '+e.message,'error');}
+    const userId=data.user?.id;
+    if(!userId){throw new Error('No user ID returned from signup.');}
+    
+    // Insert profile
+    const{error:profileError}=await db.from('user_profiles').insert({
+      id:userId,
+      email,
+      full_name:name,
+      role:'client',
+      company:company||null
+    });
+    if(profileError)throw profileError;
+    
+    // Refresh clients list from DB to ensure it shows
+    const{data:freshClients}=await db.from('user_profiles').select('*').eq('role','client').order('created_at',{ascending:false});
+    allClients=freshClients||[];
+    loadClientsTab();
+    
+    toast(`✓ Client account created! Credentials sent to ${email}`,'success',5000);
+    document.getElementById('new-user-name').value='';
+    document.getElementById('new-user-email').value='';
+    document.getElementById('new-user-password').value='';
+    document.getElementById('new-user-company').value='';
+  }catch(e){
+    console.error('Account creation error:',e);
+    toast('Error: '+e.message,'error',4000);
+  }
   btn.disabled=false;
   btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Create Client Account';
+}
+
+// ══════════════════════════════════════════════════════════
+// SYNC AUTH USERS
+// ══════════════════════════════════════════════════════════
+async function syncAuthUsers() {
+  if (!currentUser?.user_metadata?.is_admin) {
+    alert('Only admins can sync users');
+    return;
+  }
+  try {
+    const syncBtn = document.getElementById('sync-users-btn');
+    syncBtn.disabled = true;
+    syncBtn.textContent = '⏳Syncing...';
+    
+    // Get all auth users
+    const { data: { users }, error: authError } = await db.auth.admin.listUsers();
+    if (authError) throw new Error('Failed to fetch auth users: ' + authError.message);
+    
+    // Get existing profiles
+    const { data: existingProfiles, error: profileError } = await db
+      .from('user_profiles')
+      .select('id');
+    if (profileError) throw new Error('Failed to fetch existing profiles: ' + profileError.message);
+    
+    const existingIds = new Set(existingProfiles.map(p => p.id));
+    const missingUsers = users.filter(u => !existingIds.has(u.id));
+    
+    if (missingUsers.length === 0) {
+      alert('All auth users already have profiles!');
+      syncBtn.disabled = false;
+      syncBtn.textContent = '↻ Sync Users from Auth';
+      return;
+    }
+    
+    // Insert new profiles for missing users
+    const profilesToInsert = missingUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      full_name: u.user_metadata?.full_name || u.email.split('@')[0],
+      phone: u.user_metadata?.phone || null,
+      company: u.user_metadata?.company || null,
+      role: u.user_metadata?.role || 'client'
+    }));
+    
+    const { error: insertError } = await db
+      .from('user_profiles')
+      .insert(profilesToInsert);
+    if (insertError) throw new Error('Failed to insert profiles: ' + insertError.message);
+    
+    // Refresh the clients list
+    const {data:freshClients}=await db.from('user_profiles').select('*').eq('role','client').order('created_at',{ascending:false});
+    allClients=freshClients||[];
+    loadClientsTab();
+    
+    alert('✓ Synced ' + missingUsers.length + ' user(s) from auth!');
+    syncBtn.disabled = false;
+    syncBtn.textContent = '↻ Sync Users from Auth';
+  } catch (error) {
+    console.error('Sync error:', error);
+    alert('Sync failed: ' + error.message);
+    const syncBtn = document.getElementById('sync-users-btn');
+    syncBtn.disabled = false;
+    syncBtn.textContent = '↻ Sync Users';
+  }
 }
 
 // ══════════════════════════════════════════════════════════
