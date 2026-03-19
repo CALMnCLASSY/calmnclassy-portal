@@ -365,6 +365,22 @@ tr:hover td{background:#F8FAFC}
   .print-footer-block{display:block!important}
 }
 .print-footer-block{display:none}
+
+/* MSA MODAL */
+.msa-modal-content{background:#fff;border-radius:14px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 24px 64px rgba(15,23,42,.22);max-height:90vh;display:flex;flex-direction:column}
+.msa-modal-head{background:#0F172A;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
+.msa-modal-title{color:#fff;font-size:15px;font-weight:600}
+.msa-close-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.msa-close-btn:hover{background:rgba(255,255,255,.15)}
+.msa-modal-body{flex:1;overflow-y:auto;padding:24px;color:#334155;line-height:1.8}
+.msa-article{margin-bottom:20px}
+.msa-article h3{font-size:13px;font-weight:600;color:#0F172A;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;border-bottom:1px solid #E2E8F0;padding-bottom:8px}
+.msa-article p{font-size:12.5px;color:#475569;line-height:1.7;margin-bottom:10px}
+.msa-article strong{color:#0F172A;font-weight:600}
+.msa-modal-footer{padding:14px 24px;border-top:1px solid #F1F5F9;background:#F8FAFC;display:flex;justify-content:flex-end}
+.text-btn{background:none;border:none;font-weight:500;cursor:pointer;padding:0;transition:all .12s}
+.text-btn:hover{opacity:0.8}
+
 </style>
 </head>
 <body>
@@ -537,7 +553,10 @@ tr:hover td{background:#F8FAFC}
             <table class="pay-table"><thead><tr><th>Milestone</th><th>%</th><th style="text-align:right">Amount</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody id="sow-milestones"></tbody></table>
           </div>
           <div class="sow-section">
-            <div class="sow-section-title">Master Service Agreement</div>
+            <div class="sow-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="openMSAModal()">
+              <span>Master Service Agreement</span>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:0.6"><path d="M15 3H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6"/><path d="M10 13h4M10 17h4M14 3v4"/></svg>
+            </div>
             <div class="tos-box">
               <h4>Article I — Binding Nature</h4><p>This SOW constitutes a legally binding contract between CALMNCLASSY DEV (Reg. No. KE-2024-TECH-00142) and the Client. Payment via Paystack irrevocably executes this SOW as a digital signature under applicable e-commerce laws.</p>
               <h4>Article II — Payment via Paystack</h4><p>Completing a Paystack transaction constitutes: (a) acceptance of deliverables; (b) a binding digital signature; (c) authorization of the milestone. Paystack transaction IDs serve as immutable audit-trail records.</p>
@@ -546,6 +565,7 @@ tr:hover td{background:#F8FAFC}
               <h4>Article V — Confidentiality</h4><p>Both parties maintain confidentiality of all shared information for 3 years post-completion.</p>
               <h4>Article VI — Liability</h4><p>Liability shall not exceed total fees paid for the disputed milestone. No indirect or consequential damages apply.</p>
               <h4>Article VII — Disputes</h4><p>Disputes resolved first by 30-day negotiation, then binding arbitration under Kenya Arbitration Act (Cap 49).</p>
+              <div style="text-align:center;margin-top:12px"><button class="text-btn" onclick="openMSAModal()" style="font-size:12px;color:#3B82F6;padding:8px 12px">Read Full Agreement →</button></div>
             </div>
           </div>
           <div class="sow-section">
@@ -800,6 +820,49 @@ tr:hover td{background:#F8FAFC}
         <button class="sa-primary" id="success-dl-btn" onclick="downloadReceipt()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download Official Receipt</button>
         <button class="sa-secondary" onclick="closeSuccessOverlay()">Return to Portal</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MSA MODAL -->
+<div class="modal-overlay" id="msa-modal" style="display:none" onclick="if(event.target.id==='msa-modal') closeMSAModal()">
+  <div class="msa-modal-content">
+    <div class="msa-modal-head">
+      <div class="msa-modal-title">Master Service Agreement</div>
+      <button class="msa-close-btn" onclick="closeMSAModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="msa-modal-body">
+      <div class="msa-article">
+        <h3>Article I — Binding Nature</h3>
+        <p>This SOW constitutes a legally binding contract between CALMNCLASSY DEV (Reg. No. KE-2024-TECH-00142) and the Client. Payment via Paystack irrevocably executes this SOW as a digital signature under applicable e-commerce laws.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article II — Payment via Paystack</h3>
+        <p>Completing a Paystack transaction constitutes: (a) acceptance of deliverables; (b) a binding digital signature; (c) authorization of the milestone. Paystack transaction IDs serve as immutable audit-trail records.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article III — Non-Refund Policy</h3>
+        <p>All fees are milestone-based. Once a milestone is delivered and accepted (explicitly or via payment), fees become <strong>non-refundable</strong>. Scope changes require a new SOW.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article IV — Intellectual Property</h3>
+        <p>Upon full payment, all IP transfers exclusively to the Client. CALMNCLASSY DEV retains portfolio display rights excluding confidential business logic.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article V — Confidentiality</h3>
+        <p>Both parties maintain confidentiality of all shared information for 3 years post-completion.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article VI — Liability</h3>
+        <p>Liability shall not exceed total fees paid for the disputed milestone. No indirect or consequential damages apply.</p>
+      </div>
+      <div class="msa-article">
+        <h3>Article VII — Disputes</h3>
+        <p>Disputes resolved first by 30-day negotiation, then binding arbitration under Kenya Arbitration Act (Cap 49).</p>
+      </div>
+    </div>
+    <div class="msa-modal-footer">
+      <button class="btn" onclick="closeMSAModal()">Close</button>
     </div>
   </div>
 </div>
@@ -1199,6 +1262,8 @@ function openPayModal(projectUUID,milestoneUUID){
   document.getElementById('pay-modal').style.display='flex';
 }
 function closeModal(){document.getElementById('pay-modal').style.display='none'}
+function openMSAModal(){document.getElementById('msa-modal').style.display='flex'}
+function closeMSAModal(){document.getElementById('msa-modal').style.display='none'}
 function toggleModalAgree(){
   modalAgreed=!modalAgreed;
   const mc=document.getElementById('modal-chk');const pb=document.getElementById('modal-pay-btn');
