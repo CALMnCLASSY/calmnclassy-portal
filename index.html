@@ -1484,7 +1484,10 @@ async function createClientAccount(){
       role:'client',
       company:company||null
     });
-    if(profileError)throw profileError;
+    if(profileError){
+      console.error('Profile insert error:', profileError);
+      throw new Error('Failed to create profile: ' + profileError.message);
+    }
     
     // Refresh clients list from DB to ensure it shows
     const{data:freshClients}=await db.from('user_profiles').select('*').eq('role','client').order('created_at',{ascending:false});
