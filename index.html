@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CALMNCLASSY DEV — Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:#F8FAFC;min-height:100vh;font-size:13px;color:#0F172A}
+input,button,select,textarea{font-family:inherit}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* ══════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════ */
+#login-screen{
+  position:fixed;inset:0;background:#0F172A;
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:20px;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(59,130,246,.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16,185,129,.05) 0%, transparent 40%);
+}
+.login-card{
+  background:#fff;border-radius:16px;width:100%;max-width:400px;
+  overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.4);
+}
+.login-head{
+  background:#0F172A;border-bottom:1px solid rgba(255,255,255,.06);
+  padding:28px 32px 24px;text-align:center;
+}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px}
+.login-logo-icon{width:36px;height:36px;background:#3B82F6;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.login-logo-name{color:#fff;font-size:16px;font-weight:600}
+.login-logo-name span{color:#3B82F6}
+.login-tagline{color:#94A3B8;font-size:11.5px;line-height:1.6}
+.login-body{padding:28px 32px}
+.login-greeting{font-size:15px;font-weight:600;color:#0F172A;margin-bottom:4px}
+.login-sub{font-size:12px;color:#64748B;margin-bottom:22px}
+.login-field{margin-bottom:14px}
+.login-label{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:5px;letter-spacing:.3px}
+.login-input{width:100%;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F172A;outline:none;transition:border .12s,box-shadow .12s;background:#F8FAFC}
+.login-input:focus{border-color:#3B82F6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.login-input::placeholder{color:#CBD5E1}
+.login-btn{width:100%;padding:10px;border-radius:8px;background:#3B82F6;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:7px}
+.login-btn:hover{background:#2563EB}
+.login-btn:disabled{background:#94A3B8;cursor:not-allowed}
+.login-error{background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;padding:9px 12px;font-size:12px;color:#DC2626;margin-bottom:14px;display:none}
+.login-footer{text-align:center;font-size:11px;color:#94A3B8;padding:14px 32px;border-top:1px solid #F1F5F9;background:#F8FAFC}
+.login-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══════════════════════════════════════
+   PORTAL SHELL (hidden until auth)
+══════════════════════════════════════ */
+#portal{display:none;flex-direction:column;min-height:100vh}
+#topbar{background:#0F172A;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;flex-shrink:0;position:sticky;top:0;z-index:50}
+#main{display:flex;flex:1;min-height:calc(100vh - 52px)}
+#sidebar{width:210px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;flex-shrink:0;padding:14px 8px}
+#content{flex:1;overflow-y:auto;padding:24px;max-width:100%}
+
+/* TOPBAR */
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;background:#3B82F6;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-name{color:#fff;font-weight:600;font-size:14px;letter-spacing:.3px}
+.brand-name span{color:#3B82F6}
+.top-right{display:flex;align-items:center;gap:10px}
+.status-badge{display:flex;align-items:center;gap:5px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10B981;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:500}
+.status-dot{width:6px;height:6px;background:#10B981;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar-user{display:flex;align-items:center;gap:7px;cursor:pointer}
+.topbar-avatar{width:28px;height:28px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600}
+.topbar-name{color:#94A3B8;font-size:11.5px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:5px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#FCA5A5;font-size:11px;cursor:pointer;transition:all .12s}
+.logout-btn:hover{background:rgba(239,68,68,.12);color:#EF4444}
+.admin-badge-top{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:5px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#FCD34D;font-size:11px;font-weight:500}
+
+/* SIDEBAR */
+.nav-lbl{font-size:10px;font-weight:600;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;padding:10px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:#475569;font-size:12.5px;font-weight:400;transition:background .12s,color .12s;margin-bottom:1px;user-select:none}
+.nav-item:hover{background:#F1F5F9;color:#0F172A}
+.nav-item.active{background:#EFF6FF;color:#3B82F6;font-weight:500}
+.nav-icon{width:15px;height:15px;flex-shrink:0;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;background:#3B82F6;color:#fff;font-size:10px;border-radius:10px;padding:1px 6px;font-weight:600}
+.sidebar-footer{margin-top:auto;border-top:1px solid #F1F5F9;padding-top:10px}
+.client-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;background:#F8FAFC}
+.client-av{width:28px;height:28px;background:#3B82F6;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;flex-shrink:0}
+.client-name{font-size:12px;font-weight:500;color:#0F172A}
+.client-email{font-size:10px;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+
+/* LOADING STATES */
+.loading-state{padding:40px 20px;text-align:center;color:#94A3B8}
+.loading-spinner{width:24px;height:24px;border:2px solid #E2E8F0;border-top-color:#3B82F6;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+.empty-state{padding:50px 20px;text-align:center;color:#94A3B8}
+.empty-state svg{margin:0 auto 12px;display:block}
+
+/* PAGE */
+.page-header{margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.page-title{font-size:18px;font-weight:600;color:#0F172A;margin-bottom:3px}
+.page-sub{font-size:12px;color:#64748B}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.metric-card{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px}
+.metric-label{font-size:11px;font-weight:600;color:#94A3B8;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.metric-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.metric-value{font-size:28px;font-weight:600;color:#0F172A;line-height:1;margin-bottom:4px}
+.metric-hint{font-size:11px;color:#94A3B8}
+
+/* TABLE CARD */
+.table-card{background:#fff;border:1px solid #E2E8F0;border-radius:10px;overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #F1F5F9;gap:10px;flex-wrap:wrap}
+.table-title{font-size:13px;font-weight:600;color:#0F172A}
+.table-sub{font-size:11px;color:#94A3B8;margin-top:1px}
+.filter-row{display:flex;gap:4px;flex-wrap:wrap}
+.filter-btn{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #E2E8F0;background:#fff;color:#64748B;transition:all .12s}
+.filter-btn.active{background:#0F172A;color:#fff;border-color:#0F172A}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:9px 14px;font-size:10.5px;font-weight:600;color:#94A3B8;letter-spacing:.5px;text-transform:uppercase;background:#F8FAFC;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #F8FAFC;font-size:12.5px;color:#334155;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+.pid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B82F6;background:#EFF6FF;border:1px solid #BFDBFE;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.cat-tag{font-size:10.5px;background:#F1F5F9;color:#475569;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.table-footer{padding:9px 14px;background:#F8FAFC;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;font-size:11px;color:#94A3B8}
+
+/* STATUS BADGES */
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:500;white-space:nowrap}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%}
+.s-active{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}.s-active::before{background:#22C55E}
+.s-awaiting{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}.s-awaiting::before{background:#F59E0B}
+.s-review{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}.s-review::before{background:#3B82F6}
+.s-completed{background:#F8FAFC;color:#475569;border:1px solid #E2E8F0}.s-completed::before{background:#94A3B8}
+.s-draft{background:#FAF5FF;color:#7C3AED;border:1px solid #DDD6FE}.s-draft::before{background:#8B5CF6}
+.s-paid{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+.s-pending{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #E2E8F0;background:#fff;color:#334155;transition:all .12s}
+.btn:hover{background:#F1F5F9}
+.btn-primary{background:#3B82F6;color:#fff;border-color:#3B82F6}.btn-primary:hover{background:#2563EB}
+.btn-dark{background:#0F172A;color:#fff;border-color:#0F172A}.btn-dark:hover{background:#1E293B}
+.btn-success{background:#10B981;color:#fff;border-color:#10B981}.btn-success:hover{background:#059669}
+.btn-warning{background:#F59E0B;color:#fff;border-color:#F59E0B}.btn-warning:hover{background:#D97706}
+.btn-danger{background:#EF4444;color:#fff;border-color:#EF4444}.btn-danger:hover{background:#DC2626}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:5px}
+.btn-pay{background:#EFF6FF;color:#1D4ED8;border:1px solid #3B82F6}.btn-pay:hover{background:#3B82F6;color:#fff}
+.btn-disabled{background:#F1F5F9;color:#94A3B8;cursor:not-allowed;border-color:#E2E8F0}
+
+/* ACTIVITY */
+.act-card{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;margin-top:14px}
+.act-title{font-size:13px;font-weight:600;color:#0F172A;margin-bottom:12px}
+.act-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid #F8FAFC}
+.act-item:last-child{border:none;padding-bottom:0}
+
+/* SOW */
+.sow-wrap{max-width:820px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#64748B;cursor:pointer;margin-bottom:16px;padding:5px 0;background:none;border:none}
+.back-btn:hover{color:#0F172A}
+.sow-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
+.sow-head{background:#0F172A;padding:22px 28px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.sow-brand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sow-brand-icon{width:34px;height:34px;background:#3B82F6;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.sow-brand-name{color:#fff;font-size:16px;font-weight:600}.sow-brand-name span{color:#3B82F6}
+.sow-meta{font-size:11px;color:#94A3B8;line-height:2}
+.sow-doc-info{text-align:right;flex-shrink:0}
+.sow-doc-title{color:#fff;font-size:14px;font-weight:600;margin-bottom:4px}
+.sow-doc-sub{color:#94A3B8;font-size:11px;margin-bottom:2px;font-family:'IBM Plex Mono',monospace}
+.sow-body{padding:24px 28px}
+.sow-section{margin-bottom:24px}
+.sow-section-title{font-size:10px;font-weight:600;color:#94A3B8;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ib-label{font-size:10.5px;color:#94A3B8;font-weight:500;margin-bottom:3px}
+.ib-val{font-size:13px;font-weight:500;color:#0F172A}
+.ib-sub{font-size:11.5px;color:#64748B;line-height:1.6}
+.del-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:7px;background:#F8FAFC;margin-bottom:6px;border:1px solid #F1F5F9}
+.del-check{width:16px;height:16px;background:#3B82F6;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.del-name{font-size:12.5px;font-weight:500;color:#0F172A}
+.del-desc{font-size:11.5px;color:#64748B;line-height:1.5}
+.pay-table{width:100%;border-collapse:collapse;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden}
+.pay-table th{background:#F8FAFC;padding:9px 12px;font-size:10px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;text-align:left}
+.pay-table td{padding:10px 12px;font-size:12.5px;border-bottom:1px solid #F8FAFC;vertical-align:middle}
+.pay-table tr:last-child td{border-bottom:none}
+.pay-row-paid td{background:#F0FDF4}
+.pay-row-pending td{background:#FFFBEB}
+.pay-total-row td{background:#F8FAFC;font-weight:600;border-top:2px solid #E2E8F0}
+.sig-block{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px 18px;margin-top:14px}
+.sig-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.smi-label{font-size:10px;color:#94A3B8;margin-bottom:2px}
+.smi-val{font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#334155;font-weight:500}
+.smi-val.pending{color:#94A3B8;font-style:italic;font-family:'IBM Plex Sans',sans-serif}
+.agree-row{display:flex;align-items:flex-start;gap:9px;margin-top:12px}
+.chk{width:15px;height:15px;border:2px solid #CBD5E1;border-radius:3px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
+.chk.checked{background:#3B82F6;border-color:#3B82F6}
+.agree-label{font-size:12px;color:#334155;line-height:1.6;cursor:pointer}
+.signed-banner{display:flex;align-items:center;gap:8px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 14px;margin-top:10px}
+.sb-text{font-size:12px;font-weight:500;color:#15803D}
+.sb-sub{font-size:11px;color:#16A34A}
+.sow-actions{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid #F1F5F9;gap:8px;flex-wrap:wrap}
+.tos-box{border:1px solid #E2E8F0;border-radius:8px;padding:14px 16px;max-height:120px;overflow-y:auto;background:#F8FAFC;font-size:11px;line-height:1.8;color:#475569;margin-bottom:12px}
+.tos-box p{margin-bottom:8px}
+.tos-box h4{font-size:11px;font-weight:600;color:#0F172A;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+.expiry-warn{display:flex;align-items:center;gap:7px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:7px;padding:8px 12px;font-size:11.5px;color:#92400E;margin-bottom:14px}
+
+/* ADMIN PANEL */
+.admin-panel{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:20px}
+.admin-panel-head{background:#0F172A;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.admin-panel-title{color:#FCD34D;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.admin-badge-chip{background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#FCD34D;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.admin-body{padding:20px}
+.admin-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid #F1F5F9;padding-bottom:12px}
+.admin-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #E2E8F0;background:#fff;color:#64748B;transition:all .12s}
+.admin-tab.active{background:#FCD34D;color:#0F172A;border-color:#FCD34D}
+.admin-tab-content{display:none}
+.admin-tab-content.active{display:block}
+.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.admin-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:11px;font-weight:600;color:#475569;letter-spacing:.3px}
+.form-input{padding:7px 10px;border:1px solid #E2E8F0;border-radius:6px;font-size:12.5px;color:#0F172A;outline:none;transition:border .12s;background:#F8FAFC}
+.form-input:focus{border-color:#3B82F6;background:#fff}
+.form-input::placeholder{color:#94A3B8}
+.form-select{padding:7px 10px;border:1px solid #E2E8F0;border-radius:6px;font-size:12.5px;color:#0F172A;outline:none;background:#F8FAFC;cursor:pointer}
+.form-select:focus{border-color:#3B82F6}
+.admin-section-lbl{font-size:10px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #F1F5F9}
+.milestone-row{display:grid;grid-template-columns:1fr 80px 110px auto;gap:8px;align-items:center;margin-bottom:8px}
+.ms-remove{width:26px;height:26px;border:1px solid #FEE2E2;background:#FEF2F2;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#EF4444;flex-shrink:0}
+.ms-add-btn{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#3B82F6;cursor:pointer;padding:4px 0;background:none;border:none;font-weight:500}
+.deliverable-input-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px}
+.del-remove{width:26px;height:26px;border:1px solid #FEE2E2;background:#FEF2F2;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#EF4444;flex-shrink:0;margin-top:1px}
+.admin-footer{padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;flex-wrap:wrap;gap:8px}
+.total-calc{font-size:12px;color:#64748B}
+.total-calc strong{color:#0F172A;font-size:14px;font-family:'IBM Plex Mono',monospace}
+.divider{height:1px;background:#F1F5F9;margin:16px 0}
+.user-row-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#F8FAFC;border:1px solid #F1F5F9;border-radius:8px;margin-bottom:7px}
+.user-row-info .ur-name{font-size:12.5px;font-weight:500;color:#0F172A}
+.user-row-info .ur-email{font-size:11px;color:#64748B}
+.user-row-info .ur-role{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-top:2px}
+.role-admin{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
+.role-client{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+
+/* RECEIPT VIEW */
+.receipt-wrap{max-width:680px}
+.receipt-doc{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
+.receipt-header{background:#0F172A;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.receipt-brand-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.receipt-brand-icon{width:30px;height:30px;background:#3B82F6;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.receipt-brand-name{color:#fff;font-size:15px;font-weight:600}.receipt-brand-name span{color:#3B82F6}
+.receipt-meta{font-size:11px;color:#94A3B8;line-height:1.9}
+.receipt-doc-info{text-align:right;flex-shrink:0}
+.receipt-doc-title{color:#10B981;font-size:14px;font-weight:600;margin-bottom:3px}
+.receipt-doc-sub{font-size:11px;color:#94A3B8;font-family:'IBM Plex Mono',monospace;margin-bottom:2px}
+.receipt-body{padding:22px 26px}
+.receipt-section{margin-bottom:20px}
+.receipt-section-title{font-size:10px;font-weight:600;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #F1F5F9}
+.receipt-table{width:100%;border-collapse:collapse}
+.receipt-table td{padding:7px 0;font-size:12.5px;vertical-align:top;border-bottom:1px solid #F8FAFC}
+.receipt-table td:first-child{color:#64748B;width:40%}
+.receipt-table td:last-child{font-weight:500;color:#0F172A;text-align:right}
+.receipt-table tr:last-child td{border-bottom:none}
+.receipt-amount-block{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.rab-label{font-size:11px;color:#15803D;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.rab-amount{font-size:28px;font-weight:600;color:#15803D;font-family:'IBM Plex Mono',monospace}
+.service-link-block{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;font-size:12px;color:#1D4ED8;line-height:1.6;margin-bottom:14px}
+.receipt-footer-text{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:10px 14px;font-size:10.5px;color:#64748B;line-height:1.7;text-align:center}
+.receipt-actions{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid #F1F5F9;gap:8px;flex-wrap:wrap}
+.paid-stamp{display:inline-flex;align-items:center;gap:5px;background:#F0FDF4;border:2px solid #BBF7D0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#15803D;letter-spacing:.5px}
+.offline-stamp{display:inline-flex;align-items:center;gap:5px;background:#EFF6FF;border:2px solid #BFDBFE;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#1D4ED8;letter-spacing:.5px}
+
+/* INVOICES */
+.invoice-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.inv-stat{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px}
+.inv-stat-label{font-size:11px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.inv-stat-value{font-size:20px;font-weight:600;color:#0F172A;font-family:'IBM Plex Mono',monospace}
+.inv-stat-hint{font-size:11px;color:#94A3B8;margin-top:2px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;backdrop-filter:blur(2px)}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 64px rgba(15,23,42,.22)}
+.modal-head{padding:16px 18px;border-bottom:1px solid #F1F5F9;display:flex;align-items:flex-start;justify-content:space-between;background:#F8FAFC}
+.modal-label{font-size:10px;font-weight:600;color:#3B82F6;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.modal-title{font-size:13px;font-weight:600;color:#0F172A}
+.close-btn{width:26px;height:26px;border-radius:5px;border:1px solid #E2E8F0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B}
+.close-btn:hover{background:#F1F5F9}
+.modal-body{padding:18px}
+.info-row{background:#F8FAFC;border:1px solid #F1F5F9;border-radius:8px;padding:12px;margin-bottom:12px}
+.ir-label{font-size:10.5px;color:#94A3B8;margin-bottom:2px}
+.ir-val{font-size:13px;font-weight:500;color:#0F172A}
+.ir-sub{font-size:11px;color:#64748B;font-family:'IBM Plex Mono',monospace}
+.amount-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px}
+.ar-label{font-size:10.5px;color:#94A3B8;margin-bottom:2px}
+.ar-ms{font-size:12.5px;font-weight:500;color:#334155}
+.ar-amount{font-size:26px;font-weight:600;color:#0F172A;font-family:'IBM Plex Mono',monospace}
+.gateway-row{display:flex;align-items:center;gap:10px;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;margin-bottom:14px}
+.gw-icon{width:38px;height:38px;background:#00C3F7;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.gw-icon.offline{background:#6366F1}
+.gw-name{font-size:12.5px;font-weight:600;color:#0F172A}
+.gw-sub{font-size:10.5px;color:#94A3B8}
+.meta-fields{background:#F8FAFC;border:1px solid #F1F5F9;border-radius:7px;padding:10px 12px;margin-bottom:12px}
+.meta-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:2px 0}
+.meta-key{color:#94A3B8}
+.meta-val{font-family:'IBM Plex Mono',monospace;color:#334155;font-weight:500;font-size:10.5px}
+.modal-agree{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px}
+.modal-actions{display:flex;gap:8px}
+.ma-back{flex:1;padding:9px;border-radius:7px;border:1px solid #E2E8F0;background:#fff;font-size:12.5px;font-weight:500;cursor:pointer;color:#334155}
+.ma-pay{flex:1;padding:9px;border-radius:7px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s}
+.ma-pay.on{background:#3B82F6;color:#fff}.ma-pay.on:hover{background:#2563EB}
+.ma-pay.off{background:#F1F5F9;color:#94A3B8;cursor:not-allowed}
+.ma-pay.offline-on{background:#6366F1;color:#fff}.ma-pay.offline-on:hover{background:#4F46E5}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+
+/* SUCCESS OVERLAY */
+#success-overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);display:flex;align-items:center;justify-content:center;z-index:300;padding:16px;backdrop-filter:blur(4px)}
+.success-card{background:#fff;border-radius:18px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 32px 80px rgba(15,23,42,.3)}
+.success-head{background:#0F172A;padding:28px 28px 24px;text-align:center}
+.success-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.success-icon.paystack{background:#10B981;box-shadow:0 0 0 8px rgba(16,185,129,.15)}
+.success-icon.offline{background:#6366F1;box-shadow:0 0 0 8px rgba(99,102,241,.15)}
+.success-title{color:#fff;font-size:17px;font-weight:600;margin-bottom:5px}
+.success-sub{color:#94A3B8;font-size:12px}
+.success-ref{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#93C5FD}
+.success-body{padding:22px 24px}
+.receipt-preview{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.rp-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #F1F5F9;font-size:12px}
+.rp-row:last-child{border:none}
+.rp-key{color:#64748B}
+.rp-val{color:#0F172A;font-weight:500;font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+.rp-val.amount{color:#15803D;font-size:14px}
+.success-actions{display:flex;flex-direction:column;gap:8px}
+.sa-primary{padding:11px;border-radius:8px;background:#10B981;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.sa-primary:hover{background:#059669}
+.sa-secondary{padding:9px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;font-size:12.5px;font-weight:500;cursor:pointer;color:#334155}
+.sa-secondary:hover{background:#F8FAFC}
+
+/* DB ERROR BANNER */
+.db-error-banner{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#DC2626;display:none;align-items:flex-start;gap:8px}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:#0F172A;color:#fff;border-radius:10px;padding:12px 18px;font-size:12.5px;display:flex;align-items:center;gap:8px;z-index:400;transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none;max-width:340px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast .ti{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#toast.toast-success .ti{background:#10B981}
+#toast.toast-error .ti{background:#EF4444}
+#toast.toast-info .ti{background:#3B82F6}
+
+/* PRINT */
+@media print{
+  body{background:#fff}
+  #login-screen,#topbar,#sidebar,.back-btn,.receipt-actions,.sow-actions,.admin-panel,.filter-row,.page-header,.metrics,.table-card,.act-card,#toast,.modal-overlay,#success-overlay,.invoice-stat-row,.admin-panel{display:none!important}
+  #portal{display:block!important}
+  #main{display:block}
+  #content{padding:0;overflow:visible}
+  .sow-wrap,.receipt-wrap{max-width:100%}
+  .sow-card,.receipt-doc{box-shadow:none;border:none}
+  #view-agreements,#view-receipt{display:block!important}
+  #view-dashboard,#view-invoices,#view-projects,#view-support{display:none!important}
+  .print-footer-block{display:block!important}
+}
+.print-footer-block{display:none}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="login-logo">
+        <div class="login-logo-icon"><svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <span class="login-logo-name">CALMNCLASSY <span>DEV</span></span>
+      </div>
+      <div class="login-tagline">Client Service Portal<br>Secure · Transparent · Professional</div>
+    </div>
+    <div class="login-body">
+      <div class="login-greeting">Welcome back</div>
+      <div class="login-sub">Sign in with the credentials provided by CALMNCLASSY DEV</div>
+      <div class="login-error" id="login-error"></div>
+      <div class="login-field">
+        <label class="login-label">Email Address</label>
+        <input class="login-input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Password</label>
+        <input class="login-input" type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Sign In Securely
+      </button>
+    </div>
+    <div class="login-footer">
+      Access is by invitation only. Contact <strong>hello@calmnclassy.dev</strong> if you need assistance.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PORTAL
+══════════════════════════════════════ -->
+<div id="portal">
+
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-icon"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <span class="brand-name">CALMNCLASSY <span>DEV</span></span>
+  </div>
+  <div class="top-right">
+    <div class="admin-badge-top" id="admin-topbar-badge" style="display:none">
+      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Administrator
+    </div>
+    <div class="status-badge"><span class="status-dot"></span>Portal Active</div>
+    <div class="topbar-user">
+      <div class="topbar-avatar" id="topbar-av">AN</div>
+      <span class="topbar-name" id="topbar-name">Loading...</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">
+      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sign Out
+    </button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div class="nav-lbl">Navigation</div>
+    <div class="nav-item active" onclick="showView('dashboard',this)" data-nav>
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>Dashboard
+    </div>
+    <div class="nav-item" onclick="showView('projects',this)" data-nav>
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>My Projects
+      <span class="nav-badge" id="projects-count" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="showView('agreements',this)" data-nav>
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Service Agreements
+    </div>
+    <div class="nav-item" onclick="showView('invoices',this)" data-nav>
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Invoices
+      <span class="nav-badge" id="invoice-count" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="showView('support',this)" data-nav>
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Support
+    </div>
+    <div id="admin-nav-section" style="display:none">
+      <div class="nav-lbl" style="margin-top:8px">Admin</div>
+      <div class="nav-item" onclick="showView('admin',this)" data-nav>
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admin Panel
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="client-pill">
+        <div class="client-av" id="sidebar-av">AN</div>
+        <div><div class="client-name" id="sidebar-name">Loading...</div><div class="client-email" id="sidebar-email">...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- DB Error Banner -->
+    <div class="db-error-banner" id="db-error-banner">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <div id="db-error-text">Database connection error. Check your Supabase configuration.</div>
+    </div>
+
+    <!-- ════ DASHBOARD ════ -->
+    <div id="view-dashboard">
+      <div class="page-header">
+        <div><div class="page-title" id="dash-title">Dashboard</div><div class="page-sub" id="dash-sub">Loading your projects...</div></div>
+        <div style="display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #E2E8F0;border-radius:7px;padding:6px 12px;font-size:11.5px;color:#64748B">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span id="sync-time">—</span>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">Active Projects<div class="metric-icon" style="background:#EFF6FF"><svg width="14" height="14" fill="none" stroke="#3B82F6" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div><div class="metric-value" id="m-active">—</div><div class="metric-hint">Currently in development</div></div>
+        <div class="metric-card"><div class="metric-label">Pending Milestones<div class="metric-icon" style="background:#FFFBEB"><svg width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div></div><div class="metric-value" id="m-pending">—</div><div class="metric-hint">Awaiting payment</div></div>
+        <div class="metric-card"><div class="metric-label">Completed Services<div class="metric-icon" style="background:#F0FDF4"><svg width="14" height="14" fill="none" stroke="#22C55E" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div></div><div class="metric-value" id="m-completed">—</div><div class="metric-hint">Successfully delivered</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div><div class="table-title">Project Register</div><div class="table-sub" id="table-sub-lbl">Loading...</div></div>
+          <div class="filter-row">
+            <button class="filter-btn active" onclick="filterTable('All',this)">All</button>
+            <button class="filter-btn" onclick="filterTable('Active',this)">Active</button>
+            <button class="filter-btn" onclick="filterTable('Awaiting Payment',this)">Awaiting</button>
+            <button class="filter-btn" onclick="filterTable('Completed',this)">Done</button>
+          </div>
+        </div>
+        <div id="project-table-wrap">
+          <div class="loading-state"><div class="loading-spinner"></div>Loading projects...</div>
+        </div>
+        <div class="table-footer"><span id="table-count"></span><span id="table-updated"></span></div>
+      </div>
+      <div class="act-card"><div class="act-title">Recent Activity</div><div id="activity-feed"><div class="loading-state"><div class="loading-spinner"></div></div></div></div>
+    </div>
+
+    <!-- ════ SOW VIEW ════ -->
+    <div id="view-agreements" style="display:none" class="sow-wrap">
+      <button class="back-btn" onclick="backToDash()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back to Dashboard</button>
+      <div id="expiry-warn" class="expiry-warn" style="display:none"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg><span id="expiry-warn-text"></span></div>
+      <div class="sow-card">
+        <div class="sow-head">
+          <div>
+            <div class="sow-brand-row"><div class="sow-brand-icon"><svg width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span class="sow-brand-name">CALMNCLASSY <span>DEV</span></span></div>
+            <div class="sow-meta">123 Enterprise Avenue, Suite 400, Nairobi, Kenya<br>hello@calmnclassy.dev · calmnclassy.onrender.com<br>Registration No: <strong style="color:#CBD5E1">KE-2024-TECH-00142</strong></div>
+          </div>
+          <div class="sow-doc-info">
+            <div class="sow-doc-title">Statement of Work</div>
+            <div class="sow-doc-sub" id="sow-ref">—</div>
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:2px">Issued: <span id="sow-issue-date">—</span></div>
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:6px">Expires: <span id="sow-expiry-date">—</span></div>
+            <div id="sow-status-badge"></div>
+          </div>
+        </div>
+        <div class="sow-body">
+          <div class="sow-section">
+            <div class="sow-section-title">Client & Project Information</div>
+            <div class="info-grid">
+              <div><div class="ib-label">Client</div><div class="ib-val" id="sow-client-name">—</div><div class="ib-sub" id="sow-client-email">—</div></div>
+              <div><div class="ib-label">Service Engagement</div><div class="ib-val" id="sow-service">—</div><div class="ib-sub" id="sow-category">—</div><div class="ib-sub mono" id="sow-pid">—</div></div>
+            </div>
+          </div>
+          <div class="sow-section"><div class="sow-section-title">Technical Scope & Deliverables</div><div id="sow-deliverables"></div></div>
+          <div class="sow-section">
+            <div class="sow-section-title">Payment Schedule<span style="font-size:11px;color:#94A3B8;font-weight:400;text-transform:none;letter-spacing:0">Total: <strong style="color:#0F172A;font-family:'IBM Plex Mono',monospace" id="sow-total">—</strong></span></div>
+            <table class="pay-table"><thead><tr><th>Milestone</th><th>%</th><th style="text-align:right">Amount</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody id="sow-milestones"></tbody></table>
+          </div>
+          <div class="sow-section">
+            <div class="sow-section-title">Master Service Agreement</div>
+            <div class="tos-box">
+              <h4>Article I — Binding Nature</h4><p>This SOW constitutes a legally binding contract between CALMNCLASSY DEV (Reg. No. KE-2024-TECH-00142) and the Client. Payment via Paystack irrevocably executes this SOW as a digital signature under applicable e-commerce laws.</p>
+              <h4>Article II — Payment via Paystack</h4><p>Completing a Paystack transaction constitutes: (a) acceptance of deliverables; (b) a binding digital signature; (c) authorization of the milestone. Paystack transaction IDs serve as immutable audit-trail records.</p>
+              <h4>Article III — Non-Refund Policy</h4><p>All fees are milestone-based. Once a milestone is delivered and accepted (explicitly or via payment), fees become <strong>non-refundable</strong>. Scope changes require a new SOW.</p>
+              <h4>Article IV — Intellectual Property</h4><p>Upon full payment, all IP transfers exclusively to the Client. CALMNCLASSY DEV retains portfolio display rights excluding confidential business logic.</p>
+              <h4>Article V — Confidentiality</h4><p>Both parties maintain confidentiality of all shared information for 3 years post-completion.</p>
+              <h4>Article VI — Liability</h4><p>Liability shall not exceed total fees paid for the disputed milestone. No indirect or consequential damages apply.</p>
+              <h4>Article VII — Disputes</h4><p>Disputes resolved first by 30-day negotiation, then binding arbitration under Kenya Arbitration Act (Cap 49).</p>
+            </div>
+          </div>
+          <div class="sow-section">
+            <div class="sow-section-title">Digital Signature & Acceptance</div>
+            <div class="sig-block">
+              <div style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Acceptance Record</div>
+              <div class="agree-row"><div class="chk" id="agree-chk" onclick="toggleAgree()"></div><div class="agree-label" onclick="toggleAgree()">I, <strong id="agree-client-name">Client</strong>, have read and understand this Statement of Work. I agree that payment via Paystack constitutes my legally binding digital signature and I accept all terms above.</div></div>
+              <div class="sig-meta">
+                <div><div class="smi-label">Signed By</div><div class="smi-val pending" id="sig-name">— Not yet signed</div></div>
+                <div><div class="smi-label">Timestamp (UTC)</div><div class="smi-val pending" id="sig-timestamp">— Pending</div></div>
+                <div><div class="smi-label">Session Token</div><div class="smi-val pending" id="sig-ip">— Pending</div></div>
+              </div>
+              <div id="signed-banner" style="display:none" class="signed-banner"><svg width="16" height="16" fill="none" stroke="#15803D" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><div><div class="sb-text">Agreement Accepted — Signature Saved to Database</div><div class="sb-sub" id="signed-time-display">—</div></div></div>
+            </div>
+          </div>
+          <div class="sow-actions">
+            <button class="btn" onclick="printSOW()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download PDF</button>
+            <button class="btn btn-disabled" id="main-pay-btn" onclick="mainPayClick()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span id="main-pay-label">Sign Agreement First</span></button>
+          </div>
+          <div class="print-footer-block" style="margin-top:20px;padding-top:12px;border-top:1px solid #E2E8F0;font-size:10px;color:#94A3B8;text-align:center;line-height:1.8">CALMNCLASSY DEV · Reg. No: KE-2024-TECH-00142 · 123 Enterprise Avenue, Suite 400, Nairobi, Kenya · hello@calmnclassy.dev</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ RECEIPT VIEW ════ -->
+    <div id="view-receipt" style="display:none" class="receipt-wrap">
+      <button class="back-btn" onclick="showView('invoices',document.querySelectorAll('[data-nav]')[3])"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back to Invoices</button>
+      <div class="receipt-doc">
+        <div class="receipt-header">
+          <div>
+            <div class="receipt-brand-row"><div class="receipt-brand-icon"><svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span class="receipt-brand-name">CALMNCLASSY <span>DEV</span></span></div>
+            <div class="receipt-meta">123 Enterprise Avenue, Suite 400, Nairobi, Kenya<br>hello@calmnclassy.dev · calmnclassy.onrender.com<br>Reg. No: KE-2024-TECH-00142</div>
+          </div>
+          <div class="receipt-doc-info">
+            <div class="receipt-doc-title">OFFICIAL RECEIPT</div>
+            <div class="receipt-doc-sub" id="r-ref">—</div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:3px" id="r-date">—</div>
+            <div style="margin-top:8px" id="r-stamp"></div>
+          </div>
+        </div>
+        <div class="receipt-body">
+          <div class="receipt-amount-block">
+            <div><div class="rab-label">Amount Received</div><div class="rab-amount" id="r-amount">$0.00</div></div>
+            <div style="text-align:right"><div style="font-size:11px;color:#16A34A;font-weight:500" id="r-payment-type">Payment Confirmed</div></div>
+          </div>
+          <div class="service-link-block"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;margin-right:5px;vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Payment received for <strong id="r-ms-label">—</strong> of Project <strong id="r-project-id">—</strong> as per the signed Statement of Work <strong id="r-sow-ref">—</strong>.</div>
+          <div class="receipt-section">
+            <div class="receipt-section-title">Transaction Details</div>
+            <table class="receipt-table">
+              <tr><td>Reference</td><td id="r-paystack-ref" class="mono">—</td></tr>
+              <tr><td>Date & Time</td><td id="r-txn-date">—</td></tr>
+              <tr><td>Payment Method</td><td id="r-method">—</td></tr>
+              <tr><td>Status</td><td style="color:#15803D;font-weight:600">Confirmed & Settled</td></tr>
+            </table>
+          </div>
+          <div class="receipt-section">
+            <div class="receipt-section-title">Billed Party</div>
+            <table class="receipt-table">
+              <tr><td>Client Name</td><td id="r-client-name">—</td></tr>
+              <tr><td>Email</td><td id="r-client-email">—</td></tr>
+            </table>
+          </div>
+          <div class="receipt-section">
+            <div class="receipt-section-title">Service Details</div>
+            <table class="receipt-table">
+              <tr><td>Project ID</td><td class="mono" id="r-proj-id">—</td></tr>
+              <tr><td>SOW Reference</td><td class="mono" id="r-sow-id">—</td></tr>
+              <tr><td>Service</td><td id="r-service-name">—</td></tr>
+              <tr><td>Milestone</td><td id="r-milestone">—</td></tr>
+              <tr><td>Issued By</td><td>CALMNCLASSY DEV</td></tr>
+            </table>
+          </div>
+          <div class="receipt-footer-text">This is a computer-generated receipt for technical services rendered by CALMNCLASSY DEV (Registration No. KE-2024-TECH-00142).<br>For billing inquiries, contact <strong>hello@calmnclassy.dev</strong> or visit <strong>calmnclassy.onrender.com</strong>.<br>This receipt is valid without a physical signature.</div>
+          <div class="receipt-actions">
+            <button class="btn" onclick="openSOW(currentReceiptProjectId)">View SOW</button>
+            <button class="btn btn-success" onclick="printReceipt()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ INVOICES VIEW ════ -->
+    <div id="view-invoices" style="display:none">
+      <div class="page-header"><div><div class="page-title">Invoices & Receipts</div><div class="page-sub">All confirmed payment records.</div></div></div>
+      <div class="invoice-stat-row">
+        <div class="inv-stat"><div class="inv-stat-label">Total Receipts</div><div class="inv-stat-value" id="inv-total-count">—</div><div class="inv-stat-hint">Confirmed payments</div></div>
+        <div class="inv-stat"><div class="inv-stat-label">Total Paid</div><div class="inv-stat-value" id="inv-total-paid">—</div><div class="inv-stat-hint">Across all projects</div></div>
+        <div class="inv-stat"><div class="inv-stat-label">Last Payment</div><div class="inv-stat-value" id="inv-last-date" style="font-size:14px">—</div><div class="inv-stat-hint">Most recent</div></div>
+      </div>
+      <div class="table-card"><div class="table-header"><div><div class="table-title">Payment Receipts</div><div class="table-sub" id="inv-sub-lbl">Loading...</div></div></div><div id="invoice-table-body"><div class="loading-state"><div class="loading-spinner"></div></div></div></div>
+    </div>
+
+    <!-- ════ ADMIN PANEL ════ -->
+    <div id="view-admin" style="display:none">
+      <div class="page-header"><div><div class="page-title">Admin Panel</div><div class="page-sub">Manage clients, issue SOWs, and confirm payments.</div></div></div>
+      <div class="admin-panel">
+        <div class="admin-panel-head">
+          <div class="admin-panel-title"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>CALMNCLASSY DEV Admin <span class="admin-badge-chip">Restricted</span></div>
+        </div>
+        <div class="admin-body">
+          <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchAdminTab('sow',this)">Issue SOW / Quote</button>
+            <button class="admin-tab" onclick="switchAdminTab('users',this)">Manage Clients</button>
+            <button class="admin-tab" onclick="switchAdminTab('offline',this)">Confirm Offline Payment</button>
+          </div>
+
+          <!-- TAB: ISSUE SOW -->
+          <div id="admin-tab-sow" class="admin-tab-content active">
+            <div class="admin-section-lbl">Project Information</div>
+            <div class="admin-grid">
+              <div class="form-group"><label class="form-label">SOW Reference ID</label><input class="form-input mono" id="f-sowid" placeholder="SOW-CCD-2026-007"></div>
+              <div class="form-group"><label class="form-label">Project ID</label><input class="form-input mono" id="f-pid" placeholder="#CCD-2026-007"></div>
+              <div class="form-group"><label class="form-label">Category</label>
+                <select class="form-select" id="f-cat"><option>Web Dev</option><option>API Integration</option><option>Mobile App</option><option>UI/UX Design</option><option>DevOps</option><option>Data Engineering</option><option>Security Audit</option></select>
+              </div>
+            </div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Service / Project Title</label><input class="form-input" id="f-service" placeholder="e.g. Full-Stack E-commerce Platform"></div>
+              <div class="form-group"><label class="form-label">Assign to Client</label><select class="form-select" id="f-client-select"><option value="">— Select client —</option></select></div>
+            </div>
+            <div class="admin-grid">
+              <div class="form-group"><label class="form-label">Status</label>
+                <select class="form-select" id="f-status"><option value="Draft">Draft</option><option value="In Review">In Review</option><option value="Active" selected>Active</option><option value="Awaiting Payment">Awaiting Payment</option><option value="Completed">Completed</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Issue Date</label><input class="form-input" type="date" id="f-issue"></div>
+              <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" type="date" id="f-expiry"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="admin-section-lbl">Payment Milestones</div>
+            <div id="ms-rows"></div>
+            <button class="ms-add-btn" onclick="addMilestoneRow()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Add Milestone</button>
+            <div class="divider"></div>
+            <div class="admin-section-lbl">Technical Deliverables</div>
+            <div id="del-rows"></div>
+            <button class="ms-add-btn" onclick="addDeliverableRow()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Add Deliverable</button>
+            <div class="admin-footer" style="margin-top:16px;padding:12px 0 0;border-top:1px solid #F1F5F9">
+              <div class="total-calc">Calculated Total: <strong id="total-display">$0.00</strong></div>
+              <div style="display:flex;gap:8px">
+                <button class="btn" onclick="resetAdminForm()">Reset</button>
+                <button class="btn btn-primary" id="issue-btn" onclick="issueQuote()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Generate & Issue Quote</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: MANAGE CLIENTS -->
+          <div id="admin-tab-users" class="admin-tab-content">
+            <div class="admin-section-lbl" style="margin-bottom:14px">Registered Client Accounts</div>
+            <div id="users-list"><div class="loading-state"><div class="loading-spinner"></div>Loading clients...</div></div>
+            <div class="divider"></div>
+            <div class="admin-section-lbl">Add New Client Account</div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="new-user-name" placeholder="e.g. John Smith"></div>
+              <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" id="new-user-email" placeholder="client@company.com"></div>
+            </div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Temporary Password</label><input class="form-input" id="new-user-password" placeholder="Min. 8 characters" type="text"></div>
+              <div class="form-group"><label class="form-label">Company (Optional)</label><input class="form-input" id="new-user-company" placeholder="Company name"></div>
+            </div>
+            <button class="btn btn-primary" id="create-user-btn" onclick="createClientAccount()" style="margin-top:4px">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+              Create Client Account
+            </button>
+          </div>
+
+          <!-- TAB: OFFLINE PAYMENT -->
+          <div id="admin-tab-offline" class="admin-tab-content">
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;font-size:12px;color:#1D4ED8;margin-bottom:16px;line-height:1.6">
+              <strong>Offline / Cash Payment Confirmation</strong><br>Use this to generate an official receipt for payments received outside Paystack — bank transfer, cash, M-Pesa, etc. This creates a verified receipt in the database and updates the project milestone status.
+            </div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Select Project</label><select class="form-select" id="offline-project-select" onchange="loadOfflineMilestones()"><option value="">— Select project —</option></select></div>
+              <div class="form-group"><label class="form-label">Select Milestone</label><select class="form-select" id="offline-milestone-select"><option value="">— Select milestone —</option></select></div>
+            </div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Payment Method</label>
+                <select class="form-select" id="offline-method">
+                  <option>Bank Transfer</option><option>Cash</option><option>M-Pesa</option><option>Cheque</option><option>Crypto</option><option>Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Reference / Receipt No.</label><input class="form-input mono" id="offline-ref" placeholder="e.g. TXN-20260320-001"></div>
+            </div>
+            <div class="admin-grid-2">
+              <div class="form-group"><label class="form-label">Amount Received</label><input class="form-input mono" id="offline-amount" placeholder="0.00" oninput="syncOfflineAmount()"></div>
+              <div class="form-group"><label class="form-label">Payment Date</label><input class="form-input" type="date" id="offline-date"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px"><label class="form-label">Notes (Optional)</label><input class="form-input" id="offline-notes" placeholder="e.g. Cash paid at meeting on 20 March 2026"></div>
+            <button class="btn btn-warning" id="offline-confirm-btn" onclick="confirmOfflinePayment()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+              Confirm Payment & Generate Receipt
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTHER VIEWS -->
+    <div id="view-projects" style="display:none">
+      <div class="page-header"><div><div class="page-title">My Projects</div></div></div>
+      <div class="empty-state"><svg width="36" height="36" fill="none" stroke="#CBD5E1" stroke-width="1.4" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><p style="font-size:13px">Detailed project view — coming soon</p></div>
+    </div>
+    <div id="view-support" style="display:none">
+      <div class="page-header"><div><div class="page-title">Support</div></div></div>
+      <div class="empty-state"><svg width="36" height="36" fill="none" stroke="#CBD5E1" stroke-width="1.4" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p style="font-size:13px">Contact hello@calmnclassy.dev for support</p></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /portal -->
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="pay-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-head"><div><div class="modal-label">Secure Payment Request</div><div class="modal-title">CALMNCLASSY DEV</div></div><button class="close-btn" onclick="closeModal()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="info-row"><div class="ir-label">Service Item</div><div class="ir-val" id="modal-service">—</div><div class="ir-sub" id="modal-pid">—</div></div>
+      <div class="amount-row"><div><div class="ar-label">Milestone</div><div class="ar-ms" id="modal-ms">—</div></div><div><div class="ar-amount" id="modal-amount">—</div></div></div>
+      <div class="gateway-row" id="modal-gateway-row">
+        <div class="gw-icon" id="modal-gw-icon">P</div>
+        <div><div class="gw-name" id="modal-gw-name">Paystack Secure Gateway</div><div class="gw-sub" id="modal-gw-sub">256-bit SSL · PCI-DSS Compliant · Instant Receipt</div></div>
+      </div>
+      <div class="meta-fields"><div class="meta-row"><span class="meta-key">Project ID</span><span class="meta-val" id="modal-meta-pid">—</span></div><div class="meta-row"><span class="meta-key">SOW Reference</span><span class="meta-val" id="modal-meta-sow">—</span></div><div class="meta-row"><span class="meta-key">Client Email</span><span class="meta-val" id="modal-meta-email">—</span></div></div>
+      <div class="modal-agree"><div class="chk" id="modal-chk" onclick="toggleModalAgree()"></div><div style="font-size:11px;color:#334155;cursor:pointer;line-height:1.6" onclick="toggleModalAgree()">I confirm this payment of <strong id="modal-amount-confirm">—</strong> for <strong id="modal-service-confirm">—</strong> constitutes a binding digital signature of the Service Agreement per the MSA.</div></div>
+      <div class="modal-actions">
+        <button class="ma-back" onclick="closeModal()">Back</button>
+        <button class="ma-pay off" id="modal-pay-btn" onclick="launchPaystack()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span id="modal-btn-text">Proceed to Secure Checkout</span><div class="spin" id="modal-spin"></div></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div id="success-overlay" style="display:none">
+  <div class="success-card">
+    <div class="success-head">
+      <div class="success-icon paystack" id="success-icon-el"><svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <div class="success-title" id="success-title">Payment Confirmed!</div>
+      <div class="success-sub" id="success-sub">Transaction processed successfully</div>
+      <div class="success-ref"><span id="success-ref-display">REF: —</span></div>
+    </div>
+    <div class="success-body">
+      <div class="receipt-preview">
+        <div class="rp-row"><span class="rp-key">Reference</span><span class="rp-val" id="sp-ref">—</span></div>
+        <div class="rp-row"><span class="rp-key">Project</span><span class="rp-val" id="sp-project">—</span></div>
+        <div class="rp-row"><span class="rp-key">Milestone</span><span class="rp-val" id="sp-milestone">—</span></div>
+        <div class="rp-row"><span class="rp-key">Date</span><span class="rp-val" id="sp-date">—</span></div>
+        <div class="rp-row" style="border-top:1px solid #E2E8F0;margin-top:4px;padding-top:8px"><span class="rp-key" style="font-weight:600;color:#0F172A">Amount Paid</span><span class="rp-val amount" id="sp-amount">—</span></div>
+      </div>
+      <div class="success-actions">
+        <button class="sa-primary" id="success-dl-btn" onclick="downloadReceipt()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download Official Receipt</button>
+        <button class="sa-secondary" onclick="closeSuccessOverlay()">Return to Portal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><div class="ti"><svg width="11" height="11" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><span id="toast-msg">Done.</span></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// ⚠️  CONFIGURATION — UPDATE THESE VALUES
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://hxqevgmxtfaenqjukbbg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cWV2Z214dGZhZW5xanVrYmJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzE1NDgsImV4cCI6MjA4OTQ0NzU0OH0.g3cVZbcaC41eFlHNyC8wdO2d2hZPRWI5GDL_4P5JoQ4';     // from Settings > API
+const PAYSTACK_PUBLIC_KEY = 'pk_test_a51108bc7a6045582f55aa31a7ed6cfee9061cbb'; 
+const ADMIN_EMAIL = 'calmnclassydev@gmail.com';
+// ══════════════════════════════════════════════════════════
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// State
+let currentUser = null;
+let currentUserProfile = null;
+let isAdmin = false;
+let currentSOWId = null;
+let currentReceiptProjectId = null;
+let currentModalData = {};
+let modalAgreed = false;
+let pendingReceiptData = null;
+let allProjects = [];
+let allReceipts = [];
+let allClients = [];
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function fmt(n){return'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtDate(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function fmtDateTime(iso){if(!iso)return'—';return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function getDaysUntil(iso){if(!iso)return 999;return Math.ceil((new Date(iso)-new Date())/(1000*60*60*24))}
+function genRef(){return'PSK_'+Math.random().toString(36).substring(2,10).toUpperCase()}
+function genReceiptId(){return'RCP-'+Date.now().toString(36).toUpperCase()}
+function checkSvg(){return'<svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>'}
+function initials(name){if(!name)return'??';return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+
+const STATUS_MAP={'Active':'s-active','Awaiting Payment':'s-awaiting','In Review':'s-review','Completed':'s-completed','Draft':'s-draft'};
+
+function toast(msg,type='success',dur=3500){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.className=`toast-${type}`;
+  t.classList.add('show');
+  t.querySelector('.ti').style.background=type==='success'?'#10B981':type==='error'?'#EF4444':'#3B82F6';
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function showDbError(msg){
+  const b=document.getElementById('db-error-banner');
+  document.getElementById('db-error-text').textContent=msg;
+  b.style.display='flex';
+}
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-error');
+  if(!email||!password){showLoginError('Please enter your email and password.');return;}
+  btn.disabled=true;
+  btn.innerHTML='<div class="login-spinner"></div>Signing in...';
+  err.style.display='none';
+  try{
+    const {data,error}=await db.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    await onLoginSuccess(data.user);
+  }catch(e){
+    showLoginError(e.message||'Invalid credentials. Please try again.');
+    btn.disabled=false;
+    btn.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Sign In Securely';
+  }
+}
+
+function showLoginError(msg){
+  const err=document.getElementById('login-error');
+  err.textContent=msg;err.style.display='block';
+}
+
+// Handle Enter key on login
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-password').focus()});
+  // Check if already logged in
+  checkSession();
+});
+
+async function checkSession(){
+  const {data:{session}}=await db.auth.getSession();
+  if(session){await onLoginSuccess(session.user);}
+}
+
+async function onLoginSuccess(user){
+  currentUser=user;
+  // Fetch profile
+  const {data:profile}=await db.from('user_profiles').select('*').eq('id',user.id).single();
+  currentUserProfile=profile||{full_name:user.email,role:'client',email:user.email};
+  isAdmin=(currentUserProfile.role==='admin'||user.email===ADMIN_EMAIL);
+
+  // Update UI
+  const name=currentUserProfile.full_name||user.email;
+  const av=initials(name);
+  document.getElementById('topbar-av').textContent=av;
+  document.getElementById('topbar-name').textContent=name;
+  document.getElementById('sidebar-av').textContent=av;
+  document.getElementById('sidebar-name').textContent=name;
+  document.getElementById('sidebar-email').textContent=user.email;
+  document.getElementById('agree-client-name').textContent=name;
+
+  if(isAdmin){
+    document.getElementById('admin-topbar-badge').style.display='flex';
+    document.getElementById('admin-nav-section').style.display='block';
+  }
+
+  // Show portal
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('portal').style.display='flex';
+
+  // Init dates
+  const now=new Date();document.getElementById('sync-time').textContent='Today '+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' EAT';
+  document.getElementById('f-issue')&&(document.getElementById('f-issue').value=now.toISOString().substring(0,10));
+  const exp=new Date();exp.setMonth(exp.getMonth()+3);
+  document.getElementById('f-expiry')&&(document.getElementById('f-expiry').value=exp.toISOString().substring(0,10));
+  const today=now.toISOString().substring(0,10);
+  document.getElementById('offline-date')&&(document.getElementById('offline-date').value=today);
+
+  // Init admin form rows
+  addMilestoneRow('Milestone 1 — 30% Deposit','30','');
+  addMilestoneRow('Milestone 2 — 70% Deployment','70','');
+  addDeliverableRow('','');
+
+  // Load data
+  await loadDashboardData();
+  document.getElementById('dash-title').textContent=`Welcome, ${name.split(' ')[0]}`;
+  document.getElementById('dash-sub').textContent=isAdmin?'Administrator Dashboard — All Client Projects':'Your project overview · CALMNCLASSY DEV';
+}
+
+async function doLogout(){
+  await db.auth.signOut();
+  currentUser=null;currentUserProfile=null;isAdmin=false;
+  document.getElementById('portal').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-error').style.display='none';
+}
+
+// ══════════════════════════════════════════════════════════
+// DATA LOADING
+// ══════════════════════════════════════════════════════════
+async function loadDashboardData(){
+  try{
+    // Load projects (admin sees all, client sees only their own)
+    let projectsQuery=db.from('projects').select(`*,milestones(*),deliverables(*),user_profiles(full_name,email)`).order('created_at',{ascending:false});
+    if(!isAdmin)projectsQuery=projectsQuery.eq('client_id',currentUser.id);
+    const {data:projects,error:pe}=await projectsQuery;
+    if(pe)throw pe;
+    allProjects=projects||[];
+
+    // Load receipts
+    let receiptsQuery=db.from('receipts').select('*').order('created_at',{ascending:false});
+    if(!isAdmin)receiptsQuery=receiptsQuery.eq('client_id',currentUser.id);
+    const {data:receipts,error:re}=await receiptsQuery;
+    if(re)throw re;
+    allReceipts=receipts||[];
+
+    // Load clients (admin only)
+    if(isAdmin){
+      const {data:clients}=await db.from('user_profiles').select('*').eq('role','client').order('created_at',{ascending:false});
+      allClients=clients||[];
+    }
+
+    updateMetrics();renderTable('All');renderActivity();
+    updateProjectCount();updateInvoiceCount();
+
+  }catch(e){
+    console.error('DB load error:',e);
+    showDbError('Database error: '+e.message+'. Check your Supabase config.');
+    // Fallback to empty state
+    allProjects=[];allReceipts=[];
+    updateMetrics();renderTable('All');renderActivity();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════
+function showView(v,el){
+  ['dashboard','agreements','projects','invoices','support','receipt','admin'].forEach(id=>{
+    const el2=document.getElementById('view-'+id);if(el2)el2.style.display='none';
+  });
+  document.getElementById('view-'+v).style.display='block';
+  document.querySelectorAll('[data-nav]').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(v==='invoices')renderInvoicesView();
+  if(v==='admin'){loadClientsTab();loadOfflineProjects();}
+}
+function backToDash(){showView('dashboard',document.querySelectorAll('[data-nav]')[0])}
+
+// ══════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════
+function updateMetrics(){
+  document.getElementById('m-active').textContent=allProjects.filter(p=>p.status==='Active').length;
+  document.getElementById('m-pending').textContent=allProjects.filter(p=>p.status==='Awaiting Payment').length;
+  document.getElementById('m-completed').textContent=allProjects.filter(p=>p.status==='Completed').length;
+}
+
+function updateProjectCount(){
+  const badge=document.getElementById('projects-count');
+  badge.textContent=allProjects.length;badge.style.display=allProjects.length?'flex':'none';
+}
+function updateInvoiceCount(){
+  const badge=document.getElementById('invoice-count');
+  badge.textContent=allReceipts.length;badge.style.display=allReceipts.length?'flex':'none';
+}
+
+function renderTable(filter){
+  const filtered=filter==='All'?[...allProjects]:allProjects.filter(p=>p.status===filter);
+  document.getElementById('table-sub-lbl').textContent=allProjects.length+' engagement'+(allProjects.length!==1?'s':'')+(isAdmin?' · All Clients':' · FY 2025–2026');
+  document.getElementById('table-updated').textContent='Updated: '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  if(!filtered.length){
+    document.getElementById('project-table-wrap').innerHTML=`<div class="empty-state"><svg width="40" height="40" fill="none" stroke="#CBD5E1" stroke-width="1.4" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><p style="font-size:13px;color:#94A3B8">${filter==='All'?'No projects yet. '+(isAdmin?'Issue a SOW from the Admin Panel.':'Your projects will appear here once issued.'):'No projects with status: '+filter}</p></div>`;
+    document.getElementById('table-count').textContent='';return;
+  }
+
+  const rows=filtered.map(p=>{
+    const total=(p.milestones||[]).reduce((s,m)=>s+Number(m.amount),0);
+    const pending=(p.milestones||[]).find(m=>m.status==='Pending');
+    const msLabel=pending?pending.label:'Fully Paid';
+    const clientName=p.user_profiles?.full_name||'—';
+    return`<tr>
+      <td><span class="pid">${p.project_id||'—'}</span></td>
+      ${isAdmin?`<td style="font-size:11.5px;color:#64748B">${clientName}</td>`:''}
+      <td style="font-weight:500;color:#0F172A;max-width:180px">${p.service||'—'}</td>
+      <td><span class="cat-tag">${p.category||'—'}</span></td>
+      <td><span class="sbadge ${STATUS_MAP[p.status]||'s-draft'}">${p.status}</span></td>
+      <td style="color:#64748B;font-size:12px">${msLabel}</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:500;white-space:nowrap">${fmt(total)}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm btn-dark" onclick="openSOW('${p.id}')">View SOW</button>
+        ${pending&&p.signature_agreed?`<button class="btn btn-sm btn-pay" onclick="openPayModal('${p.id}','${pending.id}')" style="margin-left:4px">Pay</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('project-table-wrap').innerHTML=`
+    <table>
+      <thead><tr>
+        <th>Project ID</th>${isAdmin?'<th>Client</th>':''}
+        <th>Service</th><th>Category</th><th>Status</th><th>Milestone</th>
+        <th style="text-align:right">Value</th><th style="text-align:right">Actions</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  document.getElementById('table-count').textContent=`Showing ${filtered.length} of ${allProjects.length}`;
+}
+
+function filterTable(f,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTable(f)}
+
+function renderActivity(){
+  const feed=document.getElementById('activity-feed');
+  const items=allReceipts.slice(0,6).map(r=>`
+    <div class="act-item">
+      <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;background:#22C55E"></div>
+      <div style="font-size:12px;color:#475569;flex:1">Payment of ${fmt(r.amount)} confirmed — ${r.project_id} · ${r.milestone_label}</div>
+      <div style="font-size:11px;color:#94A3B8;flex-shrink:0">${fmtDate(r.created_at)}</div>
+    </div>`);
+  feed.innerHTML=items.length?items.join(''):`<div style="font-size:12px;color:#94A3B8;padding:8px 0">No activity yet. Payments and signature events will appear here.</div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// SOW VIEW
+// ══════════════════════════════════════════════════════════
+function openSOW(projectUUID){
+  const p=allProjects.find(x=>x.id===projectUUID);if(!p)return;
+  currentSOWId=projectUUID;
+  const milestones=p.milestones||[];const deliverables=p.deliverables||[];
+  document.getElementById('sow-ref').textContent=p.sow_id||'—';
+  document.getElementById('sow-issue-date').textContent=fmtDate(p.issue_date);
+  document.getElementById('sow-expiry-date').textContent=fmtDate(p.expiry_date);
+  document.getElementById('sow-service').textContent=p.service||'—';
+  document.getElementById('sow-category').textContent=p.category||'—';
+  document.getElementById('sow-pid').textContent=p.project_id||'—';
+  document.getElementById('sow-client-name').textContent=p.user_profiles?.full_name||currentUserProfile?.full_name||'—';
+  document.getElementById('sow-client-email').textContent=p.user_profiles?.email||currentUser?.email||'—';
+  document.getElementById('agree-client-name').textContent=p.user_profiles?.full_name||currentUserProfile?.full_name||'Client';
+  document.getElementById('sow-status-badge').innerHTML=`<span class="sbadge ${STATUS_MAP[p.status]||'s-draft'}">${p.status}</span>`;
+
+  const days=getDaysUntil(p.expiry_date);
+  const ew=document.getElementById('expiry-warn');
+  if(days<=0){ew.style.display='flex';document.getElementById('expiry-warn-text').textContent=`This SOW expired on ${fmtDate(p.expiry_date)}.`}
+  else if(days<30){ew.style.display='flex';document.getElementById('expiry-warn-text').textContent=`Expires in ${days} day${days===1?'':'s'} — ${fmtDate(p.expiry_date)}.`}
+  else{ew.style.display='none'}
+
+  document.getElementById('sow-deliverables').innerHTML=deliverables.map(d=>`
+    <div class="del-item"><div class="del-check">${checkSvg()}</div><div><div class="del-name">${d.name}</div><div class="del-desc">${d.description||''}</div></div></div>`).join('')||'<div style="color:#94A3B8;font-size:12px;padding:8px 0">No deliverables specified.</div>';
+
+  const total=milestones.reduce((s,m)=>s+Number(m.amount),0);
+  document.getElementById('sow-total').textContent=fmt(total);
+  document.getElementById('sow-milestones').innerHTML=milestones.map(m=>{
+    const paid=m.status==='Paid';
+    return`<tr class="${paid?'pay-row-paid':'pay-row-pending'}">
+      <td><strong>${m.label}</strong></td><td class="mono" style="color:#64748B">${m.percentage}%</td>
+      <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600">${fmt(m.amount)}</td>
+      <td style="font-size:12px;color:#64748B">${m.due_date||'TBD'}</td>
+      <td><span class="sbadge ${paid?'s-paid':'s-pending'}">${paid?checkSvg():''}${m.status}</span></td>
+      <td style="text-align:right">${!paid&&p.signature_agreed?`<button class="btn btn-sm btn-pay" onclick="openPayModal('${p.id}','${m.id}')">Pay Now</button>`:''}</td>
+    </tr>`}).join('')
+    +`<tr class="pay-total-row"><td colspan="2" style="color:#64748B;font-weight:400">Total</td><td style="text-align:right;font-family:'IBM Plex Mono',monospace">${fmt(total)}</td><td colspan="3"></td></tr>`;
+
+  // Signature
+  if(p.signature_agreed){
+    document.getElementById('agree-chk').classList.add('checked');document.getElementById('agree-chk').innerHTML=checkSvg();
+    document.getElementById('sig-name').textContent=p.user_profiles?.full_name||'—';document.getElementById('sig-name').classList.remove('pending');
+    document.getElementById('sig-timestamp').textContent=p.signature_timestamp?new Date(p.signature_timestamp).toISOString().replace('T',' ').substring(0,19)+' UTC':'—';document.getElementById('sig-timestamp').classList.remove('pending');
+    document.getElementById('sig-ip').textContent=p.signature_token||'—';document.getElementById('sig-ip').classList.remove('pending');
+    document.getElementById('signed-banner').style.display='flex';document.getElementById('signed-time-display').textContent='Signed on '+fmtDateTime(p.signature_timestamp);
+    setPayBtn(true,p);
+  }else{
+    document.getElementById('agree-chk').classList.remove('checked');document.getElementById('agree-chk').innerHTML='';
+    ['sig-name','sig-timestamp','sig-ip'].forEach(id=>{const el=document.getElementById(id);el.textContent=id==='sig-name'?'— Not yet signed':'— Pending';el.classList.add('pending')});
+    document.getElementById('signed-banner').style.display='none';
+    setPayBtn(false,p);
+  }
+  showView('agreements',document.querySelectorAll('[data-nav]')[2]);
+}
+
+function setPayBtn(ready,p){
+  const btn=document.getElementById('main-pay-btn');const lbl=document.getElementById('main-pay-label');
+  if(ready){const pending=(p.milestones||[]).find(m=>m.status==='Pending');
+    if(pending){btn.className='btn btn-primary';lbl.textContent='Pay '+pending.label;}
+    else{btn.className='btn btn-disabled';lbl.textContent='All Milestones Paid';}
+  }else{btn.className='btn btn-disabled';lbl.textContent='Sign Agreement First';}
+}
+
+async function toggleAgree(){
+  const p=allProjects.find(x=>x.id===currentSOWId);if(!p)return;
+  if(p.signature_agreed){
+    if((p.milestones||[]).some(m=>m.status==='Paid')){toast('Cannot un-sign: payments already recorded.','error');return;}
+    const{error}=await db.from('projects').update({signature_agreed:false,signature_timestamp:null,signature_token:null}).eq('id',p.id);
+    if(error){toast('Error updating signature: '+error.message,'error');return;}
+    p.signature_agreed=false;p.signature_timestamp=null;p.signature_token=null;
+    openSOW(currentSOWId);return;
+  }
+  const now=new Date();const token=currentUser.id.substring(0,8).toUpperCase();
+  const{error}=await db.from('projects').update({signature_agreed:true,signature_timestamp:now.toISOString(),signature_token:token}).eq('id',p.id);
+  if(error){toast('Error saving signature: '+error.message,'error');return;}
+  p.signature_agreed=true;p.signature_timestamp=now.toISOString();p.signature_token=token;
+  openSOW(currentSOWId);toast('Agreement accepted. Signature saved to database.');
+}
+
+function mainPayClick(){
+  const p=allProjects.find(x=>x.id===currentSOWId);
+  if(!p||!p.signature_agreed)return;
+  const pending=(p.milestones||[]).find(m=>m.status==='Pending');
+  if(pending)openPayModal(p.id,pending.id);
+}
+
+// ══════════════════════════════════════════════════════════
+// PAYMENT MODAL
+// ══════════════════════════════════════════════════════════
+function openPayModal(projectUUID,milestoneUUID){
+  const p=allProjects.find(x=>x.id===projectUUID);if(!p)return;
+  const m=(p.milestones||[]).find(x=>x.id===milestoneUUID);if(!m)return;
+  currentModalData={projectUUID,milestoneUUID,projectId:p.project_id,sowRef:p.sow_id,service:p.service,milestone:m.label,amount:m.amount,email:p.user_profiles?.email||currentUser.email};
+  document.getElementById('modal-service').textContent=p.service;
+  document.getElementById('modal-pid').textContent=p.project_id;
+  document.getElementById('modal-ms').textContent=m.label;
+  document.getElementById('modal-amount').textContent=fmt(m.amount);
+  document.getElementById('modal-amount-confirm').textContent=fmt(m.amount);
+  document.getElementById('modal-service-confirm').textContent=p.service;
+  document.getElementById('modal-meta-pid').textContent=p.project_id;
+  document.getElementById('modal-meta-sow').textContent=p.sow_id;
+  document.getElementById('modal-meta-email').textContent=currentModalData.email;
+  // Reset to Paystack mode
+  document.getElementById('modal-gw-icon').textContent='P';document.getElementById('modal-gw-icon').className='gw-icon';
+  document.getElementById('modal-gw-name').textContent='Paystack Secure Gateway';
+  document.getElementById('modal-gw-sub').textContent='256-bit SSL · PCI-DSS Compliant · Instant Receipt';
+  document.getElementById('modal-pay-btn').className='ma-pay off';
+  modalAgreed=false;const mc=document.getElementById('modal-chk');mc.classList.remove('checked');mc.innerHTML='';
+  document.getElementById('modal-pay-btn').disabled=false;
+  document.getElementById('modal-spin').style.display='none';
+  document.getElementById('modal-btn-text').textContent='Proceed to Secure Checkout';
+  document.getElementById('pay-modal').style.display='flex';
+}
+function closeModal(){document.getElementById('pay-modal').style.display='none'}
+function toggleModalAgree(){
+  modalAgreed=!modalAgreed;
+  const mc=document.getElementById('modal-chk');const pb=document.getElementById('modal-pay-btn');
+  if(modalAgreed){mc.classList.add('checked');mc.innerHTML=checkSvg();pb.className='ma-pay on';}
+  else{mc.classList.remove('checked');mc.innerHTML='';pb.className='ma-pay off';}
+}
+
+// ══════════════════════════════════════════════════════════
+// PAYSTACK
+// ══════════════════════════════════════════════════════════
+function launchPaystack(){
+  if(!modalAgreed)return;
+  const btn=document.getElementById('modal-pay-btn');
+  btn.disabled=true;document.getElementById('modal-btn-text').textContent='Connecting to Paystack...';document.getElementById('modal-spin').style.display='block';
+  const amountKobo=Math.round(Number(currentModalData.amount)*100);
+  if(typeof PaystackPop!=='undefined'){
+    try{
+      const handler=PaystackPop.setup({
+        key:PAYSTACK_PUBLIC_KEY,email:currentModalData.email,amount:amountKobo,currency:'USD',
+        ref:'CCD-'+Date.now(),
+        metadata:{custom_fields:[
+          {display_name:'Project ID',variable_name:'project_id',value:currentModalData.projectId},
+          {display_name:'SOW Reference',variable_name:'sow_ref',value:currentModalData.sowRef},
+          {display_name:'Milestone',variable_name:'milestone',value:currentModalData.milestone},
+        ]},
+        callback:function(response){onPaymentSuccess(response,'paystack')},
+        onClose:function(){btn.disabled=false;document.getElementById('modal-btn-text').textContent='Proceed to Secure Checkout';document.getElementById('modal-spin').style.display='none';toast('Payment window closed.','info');}
+      });handler.openIframe();return;
+    }catch(e){console.warn('Paystack:',e)}
+  }
+  // Simulation fallback
+  setTimeout(()=>onPaymentSuccess({reference:genRef(),status:'success'},'paystack'),1800);
+}
+
+// ══════════════════════════════════════════════════════════
+// PAYMENT SUCCESS (Paystack & Offline shared)
+// ══════════════════════════════════════════════════════════
+async function onPaymentSuccess(response,method='paystack'){
+  closeModal();
+  const now=new Date();
+  const ref=response.reference||response.txnRef||genRef();
+  const p=allProjects.find(x=>x.id===currentModalData.projectUUID);
+  const m=(p?.milestones||[]).find(x=>x.id===currentModalData.milestoneUUID);
+  if(!p||!m){toast('Project/milestone not found.','error');return;}
+
+  // 1. Mark milestone paid in DB
+  await db.from('milestones').update({status:'Paid'}).eq('id',m.id);
+  m.status='Paid';
+
+  // 2. Update project status
+  const allPaid=(p.milestones||[]).every(ms=>ms.status==='Paid');
+  const newStatus=allPaid?'Completed':'Active';
+  await db.from('projects').update({status:newStatus}).eq('id',p.id);
+  p.status=newStatus;
+
+  // 3. Save receipt to DB
+  const receiptPayload={
+    receipt_id:genReceiptId(),
+    paystack_ref:ref,
+    project_id:currentModalData.projectId,
+    project_uuid:p.id,
+    sow_ref:currentModalData.sowRef,
+    service:currentModalData.service,
+    milestone_label:currentModalData.milestone,
+    amount:Number(currentModalData.amount),
+    client_id:p.client_id||currentUser.id,
+    client_email:currentModalData.email,
+    payment_method:method==='offline'?(currentModalData.offlineMethod||'Offline')+' — '+ref:'Card — Paystack',
+    payment_type:method,
+    notes:currentModalData.notes||null,
+    created_at:now.toISOString(),
+  };
+  const{data:savedReceipt,error:re}=await db.from('receipts').insert(receiptPayload).select().single();
+  if(re){console.error('Receipt save error:',re);toast('Payment confirmed but receipt save failed: '+re.message,'error');}
+  else{allReceipts.unshift(savedReceipt||receiptPayload);}
+
+  pendingReceiptData=savedReceipt||receiptPayload;
+  renderTable('All');renderActivity();updateMetrics();updateInvoiceCount();
+  if(document.getElementById('view-agreements').style.display!=='none'&&currentSOWId===p.id)openSOW(p.id);
+  showSuccessOverlay(pendingReceiptData,method);
+}
+
+// ══════════════════════════════════════════════════════════
+// OFFLINE PAYMENT (Admin)
+// ══════════════════════════════════════════════════════════
+async function loadOfflineProjects(){
+  const sel=document.getElementById('offline-project-select');
+  sel.innerHTML='<option value="">— Select project —</option>';
+  allProjects.forEach(p=>{const opt=document.createElement('option');opt.value=p.id;opt.textContent=`${p.project_id} — ${p.service}`;sel.appendChild(opt)});
+}
+
+async function loadOfflineMilestones(){
+  const pid=document.getElementById('offline-project-select').value;
+  const sel=document.getElementById('offline-milestone-select');
+  sel.innerHTML='<option value="">— Select milestone —</option>';
+  if(!pid)return;
+  const p=allProjects.find(x=>x.id===pid);
+  (p?.milestones||[]).filter(m=>m.status==='Pending').forEach(m=>{
+    const opt=document.createElement('option');opt.value=m.id;opt.textContent=`${m.label} — ${fmt(m.amount)}`;sel.appendChild(opt);
+  });
+  // Auto-fill amount
+  const firstPending=(p?.milestones||[]).find(m=>m.status==='Pending');
+  if(firstPending)document.getElementById('offline-amount').value=firstPending.amount;
+}
+
+function syncOfflineAmount(){}
+
+async function confirmOfflinePayment(){
+  const projectUUID=document.getElementById('offline-project-select').value;
+  const milestoneUUID=document.getElementById('offline-milestone-select').value;
+  const method=document.getElementById('offline-method').value;
+  const ref=document.getElementById('offline-ref').value.trim()||('OFFLINE-'+Date.now());
+  const amount=parseFloat(document.getElementById('offline-amount').value)||0;
+  const date=document.getElementById('offline-date').value;
+  const notes=document.getElementById('offline-notes').value.trim();
+
+  if(!projectUUID||!milestoneUUID){toast('Please select a project and milestone.','error');return;}
+  if(!amount){toast('Please enter the amount received.','error');return;}
+
+  const p=allProjects.find(x=>x.id===projectUUID);
+  const m=(p?.milestones||[]).find(x=>x.id===milestoneUUID);
+  if(!p||!m){toast('Project or milestone not found.','error');return;}
+
+  const btn=document.getElementById('offline-confirm-btn');
+  btn.disabled=true;btn.textContent='Confirming...';
+
+  currentModalData={
+    projectUUID,milestoneUUID,
+    projectId:p.project_id,sowRef:p.sow_id,
+    service:p.service,milestone:m.label,amount,
+    email:p.user_profiles?.email||'',
+    offlineMethod:method,notes,
+  };
+
+  await onPaymentSuccess({reference:ref,txnRef:ref},'offline');
+  btn.disabled=false;
+  btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Confirm Payment & Generate Receipt';
+  // Reset form
+  document.getElementById('offline-ref').value='';
+  document.getElementById('offline-amount').value='';
+  document.getElementById('offline-notes').value='';
+}
+
+// ══════════════════════════════════════════════════════════
+// SUCCESS OVERLAY
+// ══════════════════════════════════════════════════════════
+function showSuccessOverlay(receipt,type='paystack'){
+  const isOffline=type==='offline';
+  document.getElementById('success-icon-el').className='success-icon '+(isOffline?'offline':'paystack');
+  document.getElementById('success-title').textContent=isOffline?'Payment Confirmed!':'Payment Confirmed!';
+  document.getElementById('success-sub').textContent=isOffline?'Offline payment recorded & receipt generated':'Transaction processed via Paystack';
+  document.getElementById('success-ref-display').textContent='REF: '+(receipt.paystack_ref||'—');
+  document.getElementById('sp-ref').textContent=receipt.paystack_ref||'—';
+  document.getElementById('sp-project').textContent=receipt.project_id||'—';
+  document.getElementById('sp-milestone').textContent=receipt.milestone_label||'—';
+  document.getElementById('sp-date').textContent=fmtDateTime(receipt.created_at);
+  document.getElementById('sp-amount').textContent=fmt(receipt.amount||0);
+  document.getElementById('success-overlay').style.display='flex';
+}
+
+function closeSuccessOverlay(){document.getElementById('success-overlay').style.display='none';pendingReceiptData=null;}
+function downloadReceipt(){if(pendingReceiptData)openReceiptView(pendingReceiptData);closeSuccessOverlay();}
+
+// ══════════════════════════════════════════════════════════
+// RECEIPT VIEW
+// ══════════════════════════════════════════════════════════
+function openReceiptView(receipt){
+  currentReceiptProjectId=receipt.project_uuid||null;
+  const isOffline=receipt.payment_type==='offline';
+  document.getElementById('r-ref').textContent=receipt.receipt_id||'—';
+  document.getElementById('r-date').textContent=fmtDateTime(receipt.created_at);
+  document.getElementById('r-amount').textContent=fmt(receipt.amount||0);
+  document.getElementById('r-paystack-ref').textContent=receipt.paystack_ref||'—';
+  document.getElementById('r-txn-date').textContent=fmtDateTime(receipt.created_at);
+  document.getElementById('r-method').textContent=receipt.payment_method||'—';
+  document.getElementById('r-client-name').textContent=receipt.client_name||currentUserProfile?.full_name||'—';
+  document.getElementById('r-client-email').textContent=receipt.client_email||'—';
+  document.getElementById('r-proj-id').textContent=receipt.project_id||'—';
+  document.getElementById('r-sow-id').textContent=receipt.sow_ref||'—';
+  document.getElementById('r-service-name').textContent=receipt.service||'—';
+  document.getElementById('r-milestone').textContent=receipt.milestone_label||'—';
+  document.getElementById('r-ms-label').textContent=receipt.milestone_label||'—';
+  document.getElementById('r-project-id').textContent=receipt.project_id||'—';
+  document.getElementById('r-sow-ref').textContent=receipt.sow_ref||'—';
+  document.getElementById('r-stamp').innerHTML=isOffline?'<span class="offline-stamp"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>OFFLINE PAYMENT</span>':'<span class="paid-stamp"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>PAID</span>';
+  document.getElementById('r-payment-type').textContent=isOffline?'Offline Payment Confirmed':'Paystack — Confirmed';
+  showView('receipt',document.querySelectorAll('[data-nav]')[3]);
+}
+
+// ══════════════════════════════════════════════════════════
+// INVOICES VIEW
+// ══════════════════════════════════════════════════════════
+function renderInvoicesView(){
+  const totalPaid=allReceipts.reduce((s,r)=>s+Number(r.amount||0),0);
+  document.getElementById('inv-total-count').textContent=allReceipts.length;
+  document.getElementById('inv-total-paid').textContent=fmt(totalPaid);
+  document.getElementById('inv-last-date').textContent=allReceipts.length?fmtDate(allReceipts[0].created_at):'—';
+  document.getElementById('inv-sub-lbl').textContent=allReceipts.length+' transaction'+(allReceipts.length!==1?'s':'');
+  if(!allReceipts.length){
+    document.getElementById('invoice-table-body').innerHTML=`<div class="empty-state"><svg width="40" height="40" fill="none" stroke="#CBD5E1" stroke-width="1.4" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><p style="font-size:13px;color:#94A3B8">No receipts yet. Completed payments will appear here.</p></div>`;return;
+  }
+  document.getElementById('invoice-table-body').innerHTML=`
+    <table>
+      <thead><tr><th>Receipt ID</th><th>Project</th><th>Service</th><th>Milestone</th><th>Method</th><th>Date</th><th style="text-align:right">Amount</th><th style="text-align:right">Action</th></tr></thead>
+      <tbody>${allReceipts.map(r=>`
+        <tr>
+          <td><span class="pid">${r.receipt_id||'—'}</span></td>
+          <td><span class="pid">${r.project_id||'—'}</span></td>
+          <td style="color:#0F172A;font-weight:500;max-width:160px">${r.service||'—'}</td>
+          <td style="color:#64748B;font-size:12px">${r.milestone_label||'—'}</td>
+          <td><span class="cat-tag">${r.payment_type==='offline'?'Offline':'Paystack'}</span></td>
+          <td style="color:#64748B;font-size:12px;white-space:nowrap">${fmtDate(r.created_at)}</td>
+          <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#15803D">${fmt(r.amount||0)}</td>
+          <td style="text-align:right">
+            <button class="btn btn-sm btn-success" onclick='openReceiptView(${JSON.stringify(r)})'>
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download
+            </button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="table-footer"><span>${allReceipts.length} receipt${allReceipts.length!==1?'s':''}</span><span style="font-weight:600;color:#15803D">Total Paid: ${fmt(totalPaid)}</span></div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN — CLIENT MANAGEMENT
+// ══════════════════════════════════════════════════════════
+function switchAdminTab(tab,btn){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-tab-'+tab).classList.add('active');
+}
+
+function loadClientsTab(){
+  const list=document.getElementById('users-list');
+  const sel=document.getElementById('f-client-select');
+  sel.innerHTML='<option value="">— Select client —</option>';
+  if(!allClients.length){list.innerHTML='<div style="color:#94A3B8;font-size:12.5px;padding:8px 0">No client accounts yet.</div>';return;}
+  list.innerHTML=allClients.map(c=>`
+    <div class="user-row-item">
+      <div class="user-row-info">
+        <div class="ur-name">${c.full_name||'—'}</div>
+        <div class="ur-email">${c.email||'—'}</div>
+        <span class="ur-role ${c.role==='admin'?'role-admin':'role-client'}">${c.role}</span>
+        ${c.company?`<span style="font-size:10px;color:#94A3B8;margin-left:4px">${c.company}</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="pid" style="font-size:10px">${c.id.substring(0,8)}</span>
+      </div>
+    </div>`).join('');
+  allClients.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`${c.full_name} (${c.email})`;sel.appendChild(opt)});
+}
+
+async function createClientAccount(){
+  const name=document.getElementById('new-user-name').value.trim();
+  const email=document.getElementById('new-user-email').value.trim();
+  const password=document.getElementById('new-user-password').value;
+  const company=document.getElementById('new-user-company').value.trim();
+  if(!name||!email||!password){toast('Please fill in name, email, and password.','error');return;}
+  if(password.length<8){toast('Password must be at least 8 characters.','error');return;}
+  const btn=document.getElementById('create-user-btn');
+  btn.disabled=true;btn.textContent='Creating account...';
+  try{
+    // Create auth account using admin API via Supabase edge function or service role
+    // For client-side, we use signUp — note: this requires email confirmation disabled in Supabase Auth settings
+    const{data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,role:'client',company}}});
+    if(error)throw error;
+    const userId=data.user?.id;
+    if(userId){
+      // Upsert profile
+      await db.from('user_profiles').upsert({id:userId,email,full_name:name,role:'client',company:company||null});
+      allClients.unshift({id:userId,email,full_name:name,role:'client',company:company||null});
+      loadClientsTab();
+      toast(`Client account created! Send ${email} their credentials.`,'success',5000);
+      document.getElementById('new-user-name').value='';document.getElementById('new-user-email').value='';document.getElementById('new-user-password').value='';document.getElementById('new-user-company').value='';
+    }
+  }catch(e){toast('Error creating account: '+e.message,'error');}
+  btn.disabled=false;
+  btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Create Client Account';
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN — ISSUE SOW
+// ══════════════════════════════════════════════════════════
+function addMilestoneRow(label='',pct='',amount=''){
+  const row=document.createElement('div');row.className='milestone-row';
+  row.innerHTML=`<input class="form-input" placeholder="Label e.g. 30% Deposit" value="${label}"><input class="form-input mono ms-pct" placeholder="%" value="${pct}" oninput="recalcTotal()"><input class="form-input mono ms-amt" placeholder="0.00" value="${amount}" oninput="recalcTotal()"><div class="ms-remove" onclick="this.parentElement.remove();recalcTotal()"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
+  document.getElementById('ms-rows').appendChild(row);recalcTotal();
+}
+function addDeliverableRow(name='',desc=''){
+  const row=document.createElement('div');row.className='deliverable-input-row';
+  row.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;gap:5px"><input class="form-input" placeholder="Deliverable name" value="${name}"><input class="form-input" placeholder="Description" value="${desc}"></div><div class="del-remove" onclick="this.parentElement.remove()"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
+  document.getElementById('del-rows').appendChild(row);
+}
+function recalcTotal(){let t=0;document.querySelectorAll('.ms-amt').forEach(i=>{t+=parseFloat(i.value)||0});document.getElementById('total-display').textContent=fmt(t);}
+function resetAdminForm(){document.getElementById('ms-rows').innerHTML='';document.getElementById('del-rows').innerHTML='';document.getElementById('f-service').value='';addMilestoneRow('Milestone 1 — 30% Deposit','30','');addMilestoneRow('Milestone 2 — 70% Deployment','70','');addDeliverableRow('','');recalcTotal();}
+
+async function issueQuote(){
+  const sowId=document.getElementById('f-sowid').value.trim();
+  const projectId=document.getElementById('f-pid').value.trim();
+  const service=document.getElementById('f-service').value.trim();
+  const clientId=document.getElementById('f-client-select').value;
+  if(!sowId||!projectId||!service||!clientId){toast('Fill in SOW ID, Project ID, Service Title, and select a client.','error');return;}
+  const milestones=[];
+  document.querySelectorAll('#ms-rows .milestone-row').forEach(r=>{const i=r.querySelectorAll('input');const l=i[0].value.trim();const p=parseFloat(i[1].value)||0;const a=parseFloat(i[2].value)||0;if(l&&a>0)milestones.push({label:l,percentage:p,amount:a,status:'Pending',due_date:null})});
+  if(!milestones.length){toast('Add at least one milestone with an amount.','error');return;}
+  const deliverables=[];
+  document.querySelectorAll('#del-rows .deliverable-input-row').forEach(r=>{const i=r.querySelectorAll('input');const n=i[0].value.trim();const d=i[1].value.trim();if(n)deliverables.push({name:n,description:d})});
+  if(!deliverables.length){toast('Add at least one deliverable.','error');return;}
+
+  const btn=document.getElementById('issue-btn');btn.disabled=true;btn.textContent='Saving to database...';
+  try{
+    // Insert project
+    const{data:proj,error:pe}=await db.from('projects').insert({
+      sow_id:sowId,project_id:projectId,service,category:document.getElementById('f-cat').value,
+      status:document.getElementById('f-status').value,issue_date:document.getElementById('f-issue').value||null,
+      expiry_date:document.getElementById('f-expiry').value||null,client_id:clientId,signature_agreed:false,
+    }).select().single();
+    if(pe)throw pe;
+    // Insert milestones
+    const{error:me}=await db.from('milestones').insert(milestones.map(m=>({...m,project_id:proj.id})));
+    if(me)throw me;
+    // Insert deliverables
+    const{error:de}=await db.from('deliverables').insert(deliverables.map(d=>({...d,project_id:proj.id})));
+    if(de)throw de;
+    toast(`SOW ${sowId} issued and saved to database!`,'success');
+    await loadDashboardData();
+    resetAdminForm();
+  }catch(e){toast('Error saving SOW: '+e.message,'error');}
+  btn.disabled=false;
+  btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Generate & Issue Quote';
+}
+
+// ══════════════════════════════════════════════════════════
+// PRINT
+// ══════════════════════════════════════════════════════════
+function printSOW(){toast('Opening print dialog...','info');setTimeout(()=>window.print(),300);}
+function printReceipt(){toast('Opening print dialog...','info');setTimeout(()=>window.print(),300);}
+</script>
+</html>
