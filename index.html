@@ -25,8 +25,8 @@ input,button,select,textarea{font-family:inherit}
   display:flex;align-items:center;justify-content:center;
   z-index:1000;padding:20px;
   background-image:
-    radial-gradient(circle at 20% 50%, rgba(59,130,246,.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(16,185,129,.05) 0%, transparent 40%);
+    radial-gradient(circle at 20% 50%, rgba(16,185,129,.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16,185,129,.08) 0%, transparent 40%);
 }
 .login-card{
   background:#fff;border-radius:16px;width:100%;max-width:400px;
@@ -37,9 +37,9 @@ input,button,select,textarea{font-family:inherit}
   padding:28px 32px 24px;text-align:center;
 }
 .login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px}
-.login-logo-icon{width:36px;height:36px;background:#3B82F6;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.login-logo-icon{width:36px;height:36px;background:transparent;border-radius:9px;display:flex;align-items:center;justify-content:center}
 .login-logo-name{color:#fff;font-size:16px;font-weight:600}
-.login-logo-name span{color:#3B82F6}
+.login-logo-name span{color:#10B981}
 .login-tagline{color:#94A3B8;font-size:11.5px;line-height:1.6}
 .login-body{padding:28px 32px}
 .login-greeting{font-size:15px;font-weight:600;color:#0F172A;margin-bottom:4px}
@@ -47,10 +47,10 @@ input,button,select,textarea{font-family:inherit}
 .login-field{margin-bottom:14px}
 .login-label{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:5px;letter-spacing:.3px}
 .login-input{width:100%;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;color:#0F172A;outline:none;transition:border .12s,box-shadow .12s;background:#F8FAFC}
-.login-input:focus{border-color:#3B82F6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.login-input:focus{border-color:#10B981;background:#fff;box-shadow:0 0 0 3px rgba(16,185,129,.1)}
 .login-input::placeholder{color:#CBD5E1}
-.login-btn{width:100%;padding:10px;border-radius:8px;background:#3B82F6;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:7px}
-.login-btn:hover{background:#2563EB}
+.login-btn{width:100%;padding:10px;border-radius:8px;background:#10B981;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:7px}
+.login-btn:hover{background:#059669}
 .login-btn:disabled{background:#94A3B8;cursor:not-allowed}
 .login-error{background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;padding:9px 12px;font-size:12px;color:#DC2626;margin-bottom:14px;display:none}
 .login-footer{text-align:center;font-size:11px;color:#94A3B8;padding:14px 32px;border-top:1px solid #F1F5F9;background:#F8FAFC}
@@ -68,15 +68,15 @@ input,button,select,textarea{font-family:inherit}
 
 /* TOPBAR */
 .brand{display:flex;align-items:center;gap:10px}
-.brand-icon{width:28px;height:28px;background:#3B82F6;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-icon{width:28px;height:28px;background:transparent;border-radius:6px;display:flex;align-items:center;justify-content:center}
 .brand-name{color:#fff;font-weight:600;font-size:14px;letter-spacing:.3px}
-.brand-name span{color:#3B82F6}
+.brand-name span{color:#10B981}
 .top-right{display:flex;align-items:center;gap:10px}
 .status-badge{display:flex;align-items:center;gap:5px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10B981;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:500}
 .status-dot{width:6px;height:6px;background:#10B981;border-radius:50%;animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .topbar-user{display:flex;align-items:center;gap:7px;cursor:pointer}
-.topbar-avatar{width:28px;height:28px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600}
+.topbar-avatar{width:28px;height:28px;background:linear-gradient(135deg,#10B981,#059669);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600}
 .topbar-name{color:#94A3B8;font-size:11.5px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logout-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:5px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#FCA5A5;font-size:11px;cursor:pointer;transition:all .12s}
 .logout-btn:hover{background:rgba(239,68,68,.12);color:#EF4444}
@@ -86,19 +86,19 @@ input,button,select,textarea{font-family:inherit}
 .nav-lbl{font-size:10px;font-weight:600;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;padding:10px 10px 5px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:#475569;font-size:12.5px;font-weight:400;transition:background .12s,color .12s;margin-bottom:1px;user-select:none}
 .nav-item:hover{background:#F1F5F9;color:#0F172A}
-.nav-item.active{background:#EFF6FF;color:#3B82F6;font-weight:500}
+.nav-item.active{background:#F0FDF4;color:#10B981;font-weight:500}
 .nav-icon{width:15px;height:15px;flex-shrink:0;opacity:.7}
 .nav-item.active .nav-icon{opacity:1}
-.nav-badge{margin-left:auto;background:#3B82F6;color:#fff;font-size:10px;border-radius:10px;padding:1px 6px;font-weight:600}
+.nav-badge{margin-left:auto;background:#10B981;color:#fff;font-size:10px;border-radius:10px;padding:1px 6px;font-weight:600}
 .sidebar-footer{margin-top:auto;border-top:1px solid #F1F5F9;padding-top:10px}
 .client-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;background:#F8FAFC}
-.client-av{width:28px;height:28px;background:#3B82F6;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;flex-shrink:0}
+.client-av{width:28px;height:28px;background:#10B981;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;flex-shrink:0}
 .client-name{font-size:12px;font-weight:500;color:#0F172A}
 .client-email{font-size:10px;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
 
 /* LOADING STATES */
 .loading-state{padding:40px 20px;text-align:center;color:#94A3B8}
-.loading-spinner{width:24px;height:24px;border:2px solid #E2E8F0;border-top-color:#3B82F6;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+.loading-spinner{width:24px;height:24px;border:2px solid #E2E8F0;border-top-color:#10B981;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
 .empty-state{padding:50px 20px;text-align:center;color:#94A3B8}
 .empty-state svg{margin:0 auto 12px;display:block}
 
@@ -128,7 +128,7 @@ th{text-align:left;padding:9px 14px;font-size:10.5px;font-weight:600;color:#94A3
 td{padding:11px 14px;border-bottom:1px solid #F8FAFC;font-size:12.5px;color:#334155;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#F8FAFC}
-.pid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3B82F6;background:#EFF6FF;border:1px solid #BFDBFE;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.pid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#10B981;background:#F0FDF4;border:1px solid #BBF7D0;padding:2px 7px;border-radius:4px;white-space:nowrap}
 .cat-tag{font-size:10.5px;background:#F1F5F9;color:#475569;padding:2px 7px;border-radius:4px;white-space:nowrap}
 .table-footer{padding:9px 14px;background:#F8FAFC;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;font-size:11px;color:#94A3B8}
 
@@ -137,7 +137,7 @@ tr:hover td{background:#F8FAFC}
 .sbadge::before{content:'';width:5px;height:5px;border-radius:50%}
 .s-active{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}.s-active::before{background:#22C55E}
 .s-awaiting{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}.s-awaiting::before{background:#F59E0B}
-.s-review{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}.s-review::before{background:#3B82F6}
+.s-review{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0}.s-review::before{background:#10B981}
 .s-completed{background:#F8FAFC;color:#475569;border:1px solid #E2E8F0}.s-completed::before{background:#94A3B8}
 .s-draft{background:#FAF5FF;color:#7C3AED;border:1px solid #DDD6FE}.s-draft::before{background:#8B5CF6}
 .s-paid{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
@@ -146,13 +146,13 @@ tr:hover td{background:#F8FAFC}
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #E2E8F0;background:#fff;color:#334155;transition:all .12s}
 .btn:hover{background:#F1F5F9}
-.btn-primary{background:#3B82F6;color:#fff;border-color:#3B82F6}.btn-primary:hover{background:#2563EB}
+.btn-primary{background:#10B981;color:#fff;border-color:#10B981}.btn-primary:hover{background:#059669}
 .btn-dark{background:#0F172A;color:#fff;border-color:#0F172A}.btn-dark:hover{background:#1E293B}
 .btn-success{background:#10B981;color:#fff;border-color:#10B981}.btn-success:hover{background:#059669}
 .btn-warning{background:#F59E0B;color:#fff;border-color:#F59E0B}.btn-warning:hover{background:#D97706}
 .btn-danger{background:#EF4444;color:#fff;border-color:#EF4444}.btn-danger:hover{background:#DC2626}
 .btn-sm{padding:4px 10px;font-size:11px;border-radius:5px}
-.btn-pay{background:#EFF6FF;color:#1D4ED8;border:1px solid #3B82F6}.btn-pay:hover{background:#3B82F6;color:#fff}
+.btn-pay{background:#F0FDF4;color:#16A34A;border:1px solid #10B981}.btn-pay:hover{background:#10B981;color:#fff}
 .btn-disabled{background:#F1F5F9;color:#94A3B8;cursor:not-allowed;border-color:#E2E8F0}
 
 /* ACTIVITY */
@@ -168,8 +168,8 @@ tr:hover td{background:#F8FAFC}
 .sow-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
 .sow-head{background:#0F172A;padding:22px 28px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
 .sow-brand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.sow-brand-icon{width:34px;height:34px;background:#3B82F6;border-radius:8px;display:flex;align-items:center;justify-content:center}
-.sow-brand-name{color:#fff;font-size:16px;font-weight:600}.sow-brand-name span{color:#3B82F6}
+.sow-brand-icon{width:34px;height:34px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.sow-brand-name{color:#fff;font-size:16px;font-weight:600}.sow-brand-name span{color:#10B981}
 .sow-meta{font-size:11px;color:#94A3B8;line-height:2}
 .sow-doc-info{text-align:right;flex-shrink:0}
 .sow-doc-title{color:#fff;font-size:14px;font-weight:600;margin-bottom:4px}
@@ -182,7 +182,7 @@ tr:hover td{background:#F8FAFC}
 .ib-val{font-size:13px;font-weight:500;color:#0F172A}
 .ib-sub{font-size:11.5px;color:#64748B;line-height:1.6}
 .del-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:7px;background:#F8FAFC;margin-bottom:6px;border:1px solid #F1F5F9}
-.del-check{width:16px;height:16px;background:#3B82F6;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.del-check{width:16px;height:16px;background:#10B981;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .del-name{font-size:12.5px;font-weight:500;color:#0F172A}
 .del-desc{font-size:11.5px;color:#64748B;line-height:1.5}
 .pay-table{width:100%;border-collapse:collapse;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden}
@@ -199,7 +199,7 @@ tr:hover td{background:#F8FAFC}
 .smi-val.pending{color:#94A3B8;font-style:italic;font-family:'IBM Plex Sans',sans-serif}
 .agree-row{display:flex;align-items:flex-start;gap:9px;margin-top:12px}
 .chk{width:15px;height:15px;border:2px solid #CBD5E1;border-radius:3px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
-.chk.checked{background:#3B82F6;border-color:#3B82F6}
+.chk.checked{background:#10B981;border-color:#10B981}
 .agree-label{font-size:12px;color:#334155;line-height:1.6;cursor:pointer}
 .signed-banner{display:flex;align-items:center;gap:8px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 14px;margin-top:10px}
 .sb-text{font-size:12px;font-weight:500;color:#15803D}
@@ -226,14 +226,14 @@ tr:hover td{background:#F8FAFC}
 .form-group{display:flex;flex-direction:column;gap:4px}
 .form-label{font-size:11px;font-weight:600;color:#475569;letter-spacing:.3px}
 .form-input{padding:7px 10px;border:1px solid #E2E8F0;border-radius:6px;font-size:12.5px;color:#0F172A;outline:none;transition:border .12s;background:#F8FAFC}
-.form-input:focus{border-color:#3B82F6;background:#fff}
+.form-input:focus{border-color:#10B981;background:#fff}
 .form-input::placeholder{color:#94A3B8}
 .form-select{padding:7px 10px;border:1px solid #E2E8F0;border-radius:6px;font-size:12.5px;color:#0F172A;outline:none;background:#F8FAFC;cursor:pointer}
-.form-select:focus{border-color:#3B82F6}
+.form-select:focus{border-color:#10B981}
 .admin-section-lbl{font-size:10px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #F1F5F9}
 .milestone-row{display:grid;grid-template-columns:1fr 80px 110px auto;gap:8px;align-items:center;margin-bottom:8px}
 .ms-remove{width:26px;height:26px;border:1px solid #FEE2E2;background:#FEF2F2;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#EF4444;flex-shrink:0}
-.ms-add-btn{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#3B82F6;cursor:pointer;padding:4px 0;background:none;border:none;font-weight:500}
+.ms-add-btn{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#10B981;cursor:pointer;padding:4px 0;background:none;border:none;font-weight:500}
 .deliverable-input-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px}
 .del-remove{width:26px;height:26px;border:1px solid #FEE2E2;background:#FEF2F2;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#EF4444;flex-shrink:0;margin-top:1px}
 .admin-footer{padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;flex-wrap:wrap;gap:8px}
@@ -245,15 +245,15 @@ tr:hover td{background:#F8FAFC}
 .user-row-info .ur-email{font-size:11px;color:#64748B}
 .user-row-info .ur-role{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-top:2px}
 .role-admin{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
-.role-client{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.role-client{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0}
 
 /* RECEIPT VIEW */
 .receipt-wrap{max-width:680px}
 .receipt-doc{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
 .receipt-header{background:#0F172A;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
 .receipt-brand-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.receipt-brand-icon{width:30px;height:30px;background:#3B82F6;border-radius:7px;display:flex;align-items:center;justify-content:center}
-.receipt-brand-name{color:#fff;font-size:15px;font-weight:600}.receipt-brand-name span{color:#3B82F6}
+.receipt-brand-icon{width:30px;height:30px;background:transparent;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.receipt-brand-name{color:#fff;font-size:15px;font-weight:600}.receipt-brand-name span{color:#10B981}
 .receipt-meta{font-size:11px;color:#94A3B8;line-height:1.9}
 .receipt-doc-info{text-align:right;flex-shrink:0}
 .receipt-doc-title{color:#10B981;font-size:14px;font-weight:600;margin-bottom:3px}
@@ -269,11 +269,11 @@ tr:hover td{background:#F8FAFC}
 .receipt-amount-block{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .rab-label{font-size:11px;color:#15803D;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
 .rab-amount{font-size:28px;font-weight:600;color:#15803D;font-family:'IBM Plex Mono',monospace}
-.service-link-block{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;font-size:12px;color:#1D4ED8;line-height:1.6;margin-bottom:14px}
+.service-link-block{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px 14px;font-size:12px;color:#16A34A;line-height:1.6;margin-bottom:14px}
 .receipt-footer-text{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:7px;padding:10px 14px;font-size:10.5px;color:#64748B;line-height:1.7;text-align:center}
 .receipt-actions{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid #F1F5F9;gap:8px;flex-wrap:wrap}
 .paid-stamp{display:inline-flex;align-items:center;gap:5px;background:#F0FDF4;border:2px solid #BBF7D0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#15803D;letter-spacing:.5px}
-.offline-stamp{display:inline-flex;align-items:center;gap:5px;background:#EFF6FF;border:2px solid #BFDBFE;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#1D4ED8;letter-spacing:.5px}
+.offline-stamp{display:inline-flex;align-items:center;gap:5px;background:#F0FDF4;border:2px solid #BBF7D0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#16A34A;letter-spacing:.5px}
 
 /* INVOICES */
 .invoice-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
@@ -286,7 +286,7 @@ tr:hover td{background:#F8FAFC}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;backdrop-filter:blur(2px)}
 .modal{background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 64px rgba(15,23,42,.22)}
 .modal-head{padding:16px 18px;border-bottom:1px solid #F1F5F9;display:flex;align-items:flex-start;justify-content:space-between;background:#F8FAFC}
-.modal-label{font-size:10px;font-weight:600;color:#3B82F6;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.modal-label{font-size:10px;font-weight:600;color:#10B981;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
 .modal-title{font-size:13px;font-weight:600;color:#0F172A}
 .close-btn{width:26px;height:26px;border-radius:5px;border:1px solid #E2E8F0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B}
 .close-btn:hover{background:#F1F5F9}
@@ -312,7 +312,7 @@ tr:hover td{background:#F8FAFC}
 .modal-actions{display:flex;gap:8px}
 .ma-back{flex:1;padding:9px;border-radius:7px;border:1px solid #E2E8F0;background:#fff;font-size:12.5px;font-weight:500;cursor:pointer;color:#334155}
 .ma-pay{flex:1;padding:9px;border-radius:7px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s}
-.ma-pay.on{background:#3B82F6;color:#fff}.ma-pay.on:hover{background:#2563EB}
+.ma-pay.on{background:#10B981;color:#fff}.ma-pay.on:hover{background:#059669}
 .ma-pay.off{background:#F1F5F9;color:#94A3B8;cursor:not-allowed}
 .ma-pay.offline-on{background:#6366F1;color:#fff}.ma-pay.offline-on:hover{background:#4F46E5}
 .spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
@@ -326,7 +326,7 @@ tr:hover td{background:#F8FAFC}
 .success-icon.offline{background:#6366F1;box-shadow:0 0 0 8px rgba(99,102,241,.15)}
 .success-title{color:#fff;font-size:17px;font-weight:600;margin-bottom:5px}
 .success-sub{color:#94A3B8;font-size:12px}
-.success-ref{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#93C5FD}
+.success-ref{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:6px;padding:4px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#BBFE96}
 .success-body{padding:22px 24px}
 .receipt-preview{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;margin-bottom:16px}
 .rp-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #F1F5F9;font-size:12px}
@@ -349,7 +349,7 @@ tr:hover td{background:#F8FAFC}
 #toast .ti{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 #toast.toast-success .ti{background:#10B981}
 #toast.toast-error .ti{background:#EF4444}
-#toast.toast-info .ti{background:#3B82F6}
+#toast.toast-info .ti{background:#10B981}
 
 /* PRINT */
 @media print{
@@ -392,7 +392,7 @@ tr:hover td{background:#F8FAFC}
   <div class="login-card">
     <div class="login-head">
       <div class="login-logo">
-        <div class="login-logo-icon"><svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="login-logo-icon"><img src="cnclogo.jpg" style="width:100%;height:100%;object-fit:contain"/></div>
         <span class="login-logo-name">CALMNCLASSY <span>DEV</span></span>
       </div>
       <div class="login-tagline">Client Service Portal<br>Secure · Transparent · Professional</div>
@@ -427,7 +427,7 @@ tr:hover td{background:#F8FAFC}
 
 <div id="topbar">
   <div class="brand">
-    <div class="brand-icon"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <div class="brand-icon"><img src="cnclogo.jpg" style="width:100%;height:100%;object-fit:contain"/></div>
     <span class="brand-name">CALMNCLASSY <span>DEV</span></span>
   </div>
   <div class="top-right">
@@ -499,7 +499,7 @@ tr:hover td{background:#F8FAFC}
         </div>
       </div>
       <div class="metrics">
-        <div class="metric-card"><div class="metric-label">Active Projects<div class="metric-icon" style="background:#EFF6FF"><svg width="14" height="14" fill="none" stroke="#3B82F6" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div><div class="metric-value" id="m-active">—</div><div class="metric-hint">Currently in development</div></div>
+        <div class="metric-card"><div class="metric-label">Active Projects<div class="metric-icon" style="background:#F0FDF4"><svg width="14" height="14" fill="none" stroke="#10B981" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div><div class="metric-value" id="m-active">—</div><div class="metric-hint">Currently in development</div></div>
         <div class="metric-card"><div class="metric-label">Pending Milestones<div class="metric-icon" style="background:#FFFBEB"><svg width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div></div><div class="metric-value" id="m-pending">—</div><div class="metric-hint">Awaiting payment</div></div>
         <div class="metric-card"><div class="metric-label">Completed Services<div class="metric-icon" style="background:#F0FDF4"><svg width="14" height="14" fill="none" stroke="#22C55E" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div></div><div class="metric-value" id="m-completed">—</div><div class="metric-hint">Successfully delivered</div></div>
       </div>
@@ -528,7 +528,7 @@ tr:hover td{background:#F8FAFC}
       <div class="sow-card">
         <div class="sow-head">
           <div>
-            <div class="sow-brand-row"><div class="sow-brand-icon"><svg width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span class="sow-brand-name">CALMNCLASSY <span>DEV</span></span></div>
+            <div class="sow-brand-row"><div class="sow-brand-icon"><img src="cnclogo.jpg" style="width:100%;height:100%;object-fit:contain"/></div><span class="sow-brand-name">CALMNCLASSY <span>DEV</span></span></div>
             <div class="sow-meta">Ruaraka, Section  58, Nairobi, Kenya<br>calmnclassydev@gmail.com · calmnclassy.onrender.com</div>
           </div>
           <div class="sow-doc-info">
@@ -565,7 +565,7 @@ tr:hover td{background:#F8FAFC}
               <h4>Article V — Confidentiality</h4><p>Both parties maintain confidentiality of all shared information for 3 years post-completion.</p>
               <h4>Article VI — Liability</h4><p>Liability shall not exceed total fees paid for the disputed milestone. No indirect or consequential damages apply.</p>
               <h4>Article VII — Disputes</h4><p>Disputes resolved first by 30-day negotiation, then binding arbitration under Kenya Arbitration Act (Cap 49).</p>
-              <div style="text-align:center;margin-top:12px"><button class="text-btn" onclick="openMSAModal()" style="font-size:12px;color:#3B82F6;padding:8px 12px">Read Full Agreement →</button></div>
+              <div style="text-align:center;margin-top:12px"><button class="text-btn" onclick="openMSAModal()" style="font-size:12px;color:#10B981;padding:8px 12px">Read Full Agreement →</button></div>
             </div>
           </div>
           <div class="sow-section">
@@ -596,7 +596,7 @@ tr:hover td{background:#F8FAFC}
       <div class="receipt-doc">
         <div class="receipt-header">
           <div>
-            <div class="receipt-brand-row"><div class="receipt-brand-icon"><svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span class="receipt-brand-name">CALMNCLASSY <span>DEV</span></span></div>
+            <div class="receipt-brand-row"><div class="receipt-brand-icon"><img src="cnclogo.jpg" style="width:100%;height:100%;object-fit:contain"/></div><span class="receipt-brand-name">CALMNCLASSY <span>DEV</span></span></div>
             <div class="receipt-meta">Ruaraka, Section 58, Nairobi, Kenya<br>calmnclassydev@gmail.com · calmnclassy.onrender.com</div>
           </div>
           <div class="receipt-doc-info">
@@ -735,7 +735,7 @@ tr:hover td{background:#F8FAFC}
 
           <!-- TAB: OFFLINE PAYMENT -->
           <div id="admin-tab-offline" class="admin-tab-content">
-            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;font-size:12px;color:#1D4ED8;margin-bottom:16px;line-height:1.6">
+            <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px 14px;font-size:12px;color:#16A34A;margin-bottom:16px;line-height:1.6">
               <strong>Offline / Cash Payment Confirmation</strong><br>Use this to generate an official receipt for payments received outside Paystack — bank transfer, cash, M-Pesa, etc. This creates a verified receipt in the database and updates the project milestone status.
             </div>
             <div class="admin-grid-2">
@@ -915,7 +915,7 @@ function toast(msg,type='success',dur=3500){
   document.getElementById('toast-msg').textContent=msg;
   t.className=`toast-${type}`;
   t.classList.add('show');
-  t.querySelector('.ti').style.background=type==='success'?'#10B981':type==='error'?'#EF4444':'#3B82F6';
+  t.querySelector('.ti').style.background=type==='success'?'#10B981':type==='error'?'#EF4444':'#10B981';
   setTimeout(()=>t.classList.remove('show'),dur);
 }
 
